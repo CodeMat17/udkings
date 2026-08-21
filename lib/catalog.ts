@@ -75,8 +75,14 @@ async function read<T>(name: string, run: () => Promise<T>): Promise<T> {
   try {
     return await run();
   } catch (cause) {
+    // The `cause` chain holds the failure that actually happened, but an Error is
+    // reported by its own message and its own stack: the dev overlay and the build
+    // log both point at the `throw` below and show nothing of the cause. So the
+    // cause's message is folded into the message here as well as attached.
+    const detail = cause instanceof Error ? cause.message : String(cause);
     throw new Error(
-      `Convex query \`${name}\` failed against ${process.env.NEXT_PUBLIC_CONVEX_URL}. ` +
+      `Convex query \`${name}\` failed against ${process.env.NEXT_PUBLIC_CONVEX_URL}: ` +
+        `${detail}. ` +
         "Check that this is the deployment the current code was pushed to " +
         "(`npx convex deploy`) and that it holds the catalogue.",
       { cause },
