@@ -61,15 +61,36 @@ function requireConvexUrl(): void {
   }
 }
 
-export const getCategories = cached("categories", async (): Promise<Category[]> => {
+/**
+ * Convex reports a function that threw as `[Request ID: ...] Server Error`, with
+ * no mention of which deployment answered or which query was asked. During
+ * `next build` that lands as a bare "Server Error" under `generateStaticParams`
+ * and says nothing actionable. Wrapping the call puts the deployment URL and the
+ * function name on the same line, which is the pair that is almost always wrong
+ * on a host: a build pointed at a Convex deployment the current code was never
+ * pushed to.
+ */
+async function read<T>(name: string, run: () => Promise<T>): Promise<T> {
   requireConvexUrl();
-  return fetchQuery(api.catalog.listCategories, {});
-});
+  try {
+    return await run();
+  } catch (cause) {
+    throw new Error(
+      `Convex query \`${name}\` failed against ${process.env.NEXT_PUBLIC_CONVEX_URL}. ` +
+        "Check that this is the deployment the current code was pushed to " +
+        "(`npx convex deploy`) and that it holds the catalogue.",
+      { cause },
+    );
+  }
+}
 
-export const getProducts = cached("products", async (): Promise<Product[]> => {
-  requireConvexUrl();
-  return fetchQuery(api.catalog.listProducts, {});
-});
+export const getCategories = cached("categories", async (): Promise<Category[]> =>
+  read("catalog:listCategories", () => fetchQuery(api.catalog.listCategories, {})),
+);
+
+export const getProducts = cached("products", async (): Promise<Product[]> =>
+  read("catalog:listProducts", () => fetchQuery(api.catalog.listProducts, {})),
+);
 
 export async function categoryBySlug(slug: string): Promise<Category | undefined> {
   return (await getCategories()).find((c) => c.slug === slug);
