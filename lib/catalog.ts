@@ -48,6 +48,17 @@ function requireConvexUrl(): void {
         "to be set in the build environment.",
     );
   }
+  // The two Convex origins differ by one word and sit next to each other in
+  // .env.local, so the wrong one gets pasted into a host's dashboard easily.
+  // `.convex.site` serves HTTP actions and cannot answer queries.
+  if (new URL(process.env.NEXT_PUBLIC_CONVEX_URL).hostname.endsWith(".convex.site")) {
+    throw new Error(
+      `NEXT_PUBLIC_CONVEX_URL is set to ${process.env.NEXT_PUBLIC_CONVEX_URL}, which ` +
+        "is the HTTP actions origin. Queries need the deployment URL, which is the " +
+        "same subdomain on .convex.cloud — that is NEXT_PUBLIC_CONVEX_SITE_URL's " +
+        "counterpart, not its value.",
+    );
+  }
 }
 
 export const getCategories = cached("categories", async (): Promise<Category[]> => {
