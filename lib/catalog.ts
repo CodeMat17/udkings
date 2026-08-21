@@ -32,15 +32,33 @@ const ONE_HOUR = 3600;
 const cached = <T>(key: string, fn: () => Promise<T>) =>
   unstable_cache(fn, [key], { tags: [CATALOG_TAG], revalidate: ONE_HOUR });
 
-export const getCategories = cached(
-  "categories",
-  async (): Promise<Category[]> => fetchQuery(api.catalog.listCategories, {}),
-);
+/**
+ * `fetchQuery` reads `NEXT_PUBLIC_CONVEX_URL` itself, and when it is missing the
+ * failure surfaces during `next build` as "Failed to collect page data", with the
+ * cause several frames down. Catalogue reads run at build time from
+ * `generateStaticParams`, so that is the usual way to meet it: a build in a shell
+ * or CI job that never loaded `.env.local`, which is not committed. Checking here
+ * turns it into one line that names the variable.
+ */
+function requireConvexUrl(): void {
+  if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_CONVEX_URL is not set, so the catalogue cannot be read from " +
+        "Convex. Locally it comes from .env.local; in CI and on the host it has " +
+        "to be set in the build environment.",
+    );
+  }
+}
 
-export const getProducts = cached(
-  "products",
-  async (): Promise<Product[]> => fetchQuery(api.catalog.listProducts, {}),
-);
+export const getCategories = cached("categories", async (): Promise<Category[]> => {
+  requireConvexUrl();
+  return fetchQuery(api.catalog.listCategories, {});
+});
+
+export const getProducts = cached("products", async (): Promise<Product[]> => {
+  requireConvexUrl();
+  return fetchQuery(api.catalog.listProducts, {});
+});
 
 export async function categoryBySlug(slug: string): Promise<Category | undefined> {
   return (await getCategories()).find((c) => c.slug === slug);
