@@ -38,7 +38,12 @@ export async function proxy(request: NextRequest) {
     `frame-ancestors 'none'`,
     `base-uri 'self'`,
     `object-src 'none'`,
-    `upgrade-insecure-requests`,
+    // `upgrade-insecure-requests` belongs here, but it does nothing in a
+    // report-only policy — it rewrites requests rather than reporting on them,
+    // so the browser drops it and logs a console notice on every page. It goes
+    // back in the list at the same time as the flip to the enforcing header
+    // below. Strict-Transport-Security already covers the same ground for
+    // navigations meanwhile.
   ].join("; ");
 
   const headers = new Headers(request.headers);

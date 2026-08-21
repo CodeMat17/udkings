@@ -1,3 +1,5 @@
+import { isValidElement } from "react"
+
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -44,11 +46,23 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  nativeButton,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+  // Base UI assumes it is rendering a real <button> and warns when it is not,
+  // because the native semantics it would otherwise inherit have to be
+  // reproduced by hand. Our link buttons pass `render={<Link />}`, which is an
+  // <a>, so read the answer off the render prop instead of asking every call
+  // site to remember it. An element whose type we cannot see (a render
+  // function) keeps Base UI's own default, and an explicit prop always wins.
+  const isNativeButton =
+    nativeButton ??
+    (isValidElement(props.render) ? props.render.type === "button" : undefined)
+
   return (
     <ButtonPrimitive
       data-slot="button"
+      nativeButton={isNativeButton}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
