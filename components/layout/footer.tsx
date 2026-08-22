@@ -25,12 +25,12 @@ export async function Footer() {
       <div className="shell grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Image
-            src="/logo.webp"
+            src="/logo-black.webp"
             alt={BUSINESS.name}
             width={83}
             height={64}
             loading="lazy"
-            className="h-16 w-auto"
+            className="h-16 w-auto rounded-2xl"
           />
           <p className="mt-3 max-w-[38ch] text-sm text-muted-foreground">
             {BUSINESS.tagline} Retail and wholesale from the same catalogue,
