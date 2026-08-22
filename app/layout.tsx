@@ -30,6 +30,12 @@ export const metadata: Metadata = {
     siteName: BUSINESS.name,
     url: SITE_URL,
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "UDKING'S Collections — Ladies Wear, Lagos Island",
+    description:
+      "Ladies' jeans, tops, gowns and two-piece sets from Andora Plaza, Lagos Island. Retail and wholesale from the same catalogue, ordered on WhatsApp.",
+  },
   formatDetection: { telephone: false },
 };
 
