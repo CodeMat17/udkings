@@ -239,8 +239,11 @@ export function CartView({
             href="/checkout"
             className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-md bg-primary font-extrabold text-primary-foreground"
           >
-            Checkout
+            Order on WhatsApp
           </Link>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            One short form, then the chat opens with your order.
+          </p>
           <Link
             href="/shop"
             className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-md border border-border font-bold"

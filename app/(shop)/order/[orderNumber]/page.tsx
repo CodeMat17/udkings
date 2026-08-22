@@ -18,6 +18,11 @@ export default async function OrderPage(props: PageProps<"/order/[orderNumber]">
   const order = await findOrder(orderNumber);
   if (!order) notFound();
 
+  // Checkout sends the customer here with ?send=1: the chat opens on its own
+  // rather than asking for one more press at the very end.
+  const { send } = await props.searchParams;
+  const auto = send === "1";
+
   const message = composeOrderMessage(order);
   const href = waLink(message);
   const pieces = order.items.reduce((n, i) => n + i.quantity, 0);
@@ -30,9 +35,10 @@ export default async function OrderPage(props: PageProps<"/order/[orderNumber]">
         {order.orderNumber}
       </h1>
       <p className="mt-4 text-lg">
-        Thank you, {order.customer.name}. Your order is saved with us. Send it on
-        WhatsApp now and we will confirm availability, the delivery fee and
-        payment details.
+        Thank you, {order.customer.name}. Your order is saved with us.{" "}
+        {auto
+          ? "WhatsApp is opening with the whole order written out — we will confirm availability, the delivery fee and payment details there."
+          : "Send it on WhatsApp now and we will confirm availability, the delivery fee and payment details."}
       </p>
 
       <dl className="mt-8 grid gap-4 rounded-md border border-border bg-card p-6 sm:grid-cols-2">
@@ -77,7 +83,7 @@ export default async function OrderPage(props: PageProps<"/order/[orderNumber]">
         </p>
       ) : null}
 
-      <HandoffButton href={href} orderNumber={order.orderNumber} />
+      <HandoffButton href={href} orderNumber={order.orderNumber} auto={auto} />
 
       <Link
         href={`/track?order=${order.orderNumber}`}

@@ -38,7 +38,14 @@ export function composeOrderMessage(order: Order): string {
   tail.push("");
   tail.push(`Order type: ${order.fulfilment === "pickup" ? "Pickup" : "Delivery"}`);
   if (order.fulfilment === "delivery" && order.delivery) {
-    tail.push(`Address: ${order.delivery.address}, ${order.delivery.city}, ${order.delivery.state}`);
+    // The address is typed as one line now, and the city and state come from
+    // the zone — so drop whichever of them is empty rather than printing gaps.
+    tail.push(
+      `Address: ${[order.delivery.address, order.delivery.city, order.delivery.state]
+        .map((part) => part?.trim())
+        .filter(Boolean)
+        .join(", ")}`,
+    );
     if (order.delivery.landmark) tail.push(`Landmark: ${order.delivery.landmark}`);
     if (order.delivery.preferredDate) tail.push(`Preferred date: ${formatDate(order.delivery.preferredDate)}`);
     if (order.delivery.preferredTime) tail.push(`Preferred time: ${order.delivery.preferredTime}`);

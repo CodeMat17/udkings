@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { m, useReducedMotion } from "framer-motion";
+import { ShoppingBagIcon } from "lucide-react";
 import { formatNaira } from "@/lib/format";
 import { dur, ease } from "@/lib/motion";
 import type { Product } from "@/lib/types";
@@ -14,9 +15,11 @@ import type { Product } from "@/lib/types";
 export function StickyOrderBar({
   product,
   onAdd,
+  onBuyNow,
 }: {
   product: Product;
   onAdd: () => void;
+  onBuyNow: () => void;
 }) {
   const reduced = useReducedMotion();
   const [shown, setShown] = useState(false);
@@ -48,13 +51,23 @@ export function StickyOrderBar({
             </span>
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onAdd}
-          className="ml-auto inline-flex h-12 shrink-0 items-center rounded-md bg-primary px-5 font-extrabold text-primary-foreground"
-        >
-          Add to cart
-        </button>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={onAdd}
+            aria-label="Add to cart"
+            className="inline-flex size-12 items-center justify-center rounded-md border border-border"
+          >
+            <ShoppingBagIcon className="size-5" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={onBuyNow}
+            className="inline-flex h-12 items-center rounded-md bg-primary px-5 font-extrabold text-primary-foreground"
+          >
+            Order now
+          </button>
+        </div>
       </div>
     </m.div>
   );

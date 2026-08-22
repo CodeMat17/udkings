@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { m, useReducedMotion } from "framer-motion";
 import { HeartIcon, Share2Icon, ShoppingBagIcon } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/whatsapp";
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 
 export function BuyPanel({ product }: { product: Product }) {
+  const router = useRouter();
   const reduced = useReducedMotion();
   const { add } = useCart();
   const wishlist = useWishlist();
@@ -58,7 +60,8 @@ export function BuyPanel({ product }: { product: Product }) {
     }),
   );
 
-  function onAdd() {
+  /** Returns false when a choice is still missing, so "Order now" can stop. */
+  function onAdd(): boolean {
     if (needsColor || needsSize) {
       setMissing(true);
       toast.error(
@@ -71,7 +74,7 @@ export function BuyPanel({ product }: { product: Product }) {
       document
         .getElementById(needsColor ? "buy-colour" : "buy-size")
         ?.scrollIntoView({ block: "center", behavior: "smooth" });
-      return;
+      return false;
     }
     setMissing(false);
     add({
@@ -92,6 +95,12 @@ export function BuyPanel({ product }: { product: Product }) {
     toast.success(`Added to cart — ${product.name}`, {
       description: `${chosen ? `${chosen} — ` : ""}${quantity} ${quantity === 1 ? "piece" : "pieces"} at ${formatNaira(priced.unitPrice)} each${priced.tier === "wholesale" ? " (wholesale)" : ""}.`,
     });
+    return true;
+  }
+
+  /** The short road: this piece straight to the form, then to WhatsApp. */
+  function onBuyNow() {
+    if (onAdd()) router.push("/checkout");
   }
 
   async function onShare() {
@@ -183,15 +192,32 @@ export function BuyPanel({ product }: { product: Product }) {
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <QuantityStepper value={quantity} onChange={setQuantity} />
+        {/* The straight road out: one short form, then the chat. "Add to cart"
+            stays for anyone buying more than this one piece. */}
         <button
           type="button"
-          onClick={onAdd}
+          onClick={onBuyNow}
           className="inline-flex h-12 w-full flex-1 items-center justify-center gap-2 rounded-md bg-primary px-6 font-extrabold text-primary-foreground sm:w-auto sm:min-w-48"
+        >
+          <WhatsAppIcon className="size-5" aria-hidden="true" />
+          Order now
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onAdd();
+          }}
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md border border-border px-6 font-extrabold sm:w-auto"
         >
           <ShoppingBagIcon className="size-5" aria-hidden="true" />
           Add to cart
         </button>
       </div>
+
+      <p className="mt-2 text-sm font-semibold text-muted-foreground">
+        Order now takes you to one short form, then WhatsApp opens with the
+        whole order written out.
+      </p>
 
       <TierMeter product={product} quantity={quantity} />
 
@@ -229,7 +255,7 @@ export function BuyPanel({ product }: { product: Product }) {
         </a>
       </div>
 
-      <StickyOrderBar product={product} onAdd={onAdd} />
+      <StickyOrderBar product={product} onAdd={onAdd} onBuyNow={onBuyNow} />
     </div>
   );
 }
