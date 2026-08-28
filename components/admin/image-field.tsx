@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { createUploadUrl, discardUpload } from "@/app/(admin)/actions";
-import { ACCEPTED_TYPES, MAX_BYTES, formatBytes, prepareImage } from "@/lib/image";
+import { ACCEPTED_TYPES, formatBytes, prepareImage } from "@/lib/image";
 
 /**
  * Choose a photograph, see what it will become, upload it.
@@ -18,12 +18,30 @@ import { ACCEPTED_TYPES, MAX_BYTES, formatBytes, prepareImage } from "@/lib/imag
  *
  * Replacing a photograph before saving deletes the one just uploaded, so an
  * indecisive admin does not leave a trail of orphaned blobs in storage.
+ *
+ * Every failure here ends in a sentence naming something the admin can do
+ * next. "Upload failed (413)" is a fact about HTTP; "your connection dropped,
+ * try again" is a fact about their afternoon.
  */
 
 type Status =
   | { phase: "idle" }
   | { phase: "working"; note: string }
   | { phase: "error"; note: string };
+
+/** Turns whatever went wrong into something a shopkeeper can act on. */
+function readable(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+
+  // Our own messages are already written for this audience.
+  if (raw.endsWith(".") && !raw.startsWith("NetworkError") && !raw.includes("fetch")) {
+    return raw;
+  }
+  if (!navigator.onLine) {
+    return "You appear to be offline. Reconnect and choose the photograph again.";
+  }
+  return "The upload did not go through — it is usually the connection. Try choosing the photograph again.";
+}
 
 export function ImageField({
   currentSrc,
@@ -48,30 +66,50 @@ export function ImageField({
     if (previewRef.current) URL.revokeObjectURL(previewRef.current);
   }, []);
 
+  function fail(note: string) {
+    setStatus({ phase: "error", note });
+    toast.error("The photograph was not added", { description: note });
+  }
+
   async function onPick(file: File) {
-    setStatus({ phase: "working", note: "Optimising the photograph…" });
+    setStatus({ phase: "working", note: "Getting the photograph ready…" });
 
     let prepared;
     try {
       prepared = await prepareImage(file);
     } catch (error) {
-      const note = error instanceof Error ? error.message : "That image could not be used.";
-      setStatus({ phase: "error", note });
-      toast.error("That photograph could not be used", { description: note });
+      fail(readable(error));
       return;
     }
 
     setStatus({ phase: "working", note: "Uploading…" });
     try {
-      const url = await createUploadUrl();
-      const response = await fetch(url, {
+      const ticket = await createUploadUrl();
+      if (!ticket.ok) {
+        URL.revokeObjectURL(prepared.previewUrl);
+        fail(ticket.error);
+        return;
+      }
+
+      const response = await fetch(ticket.url, {
         method: "POST",
         headers: { "Content-Type": prepared.blob.type },
         body: prepared.blob,
       });
-      if (!response.ok) throw new Error(`Upload failed (${response.status}).`);
+      if (!response.ok) {
+        throw new Error(
+          "The upload did not go through. Check your connection and choose the photograph again.",
+        );
+      }
 
-      const { storageId: uploaded } = (await response.json()) as { storageId: string };
+      // A one-shot URL that has already been used answers with something that
+      // is not JSON, and a bare parse error tells the admin nothing.
+      let uploaded: string;
+      try {
+        ({ storageId: uploaded } = (await response.json()) as { storageId: string });
+      } catch {
+        throw new Error("The upload did not finish. Choose the photograph again.");
+      }
 
       // Only now is the previous upload unreachable — drop it.
       if (storageId) void discardUpload(storageId);
@@ -79,18 +117,14 @@ export function ImageField({
 
       setStorageId(uploaded);
       setPreview(prepared.previewUrl);
-      setSummary(
-        `${formatBytes(prepared.originalBytes)} → ${formatBytes(prepared.bytes)} · ${prepared.width}×${prepared.height} WebP`,
-      );
+      setSummary(`Ready · ${formatBytes(prepared.originalBytes)} → ${formatBytes(prepared.bytes)}`);
       setStatus({ phase: "idle" });
-      toast.success("Photograph uploaded", {
-        description: `${formatBytes(prepared.originalBytes)} → ${formatBytes(prepared.bytes)}. Save the piece to keep it.`,
+      toast.success("Photograph added", {
+        description: "Fill in the rest and press Save.",
       });
     } catch (error) {
       URL.revokeObjectURL(prepared.previewUrl);
-      const note = error instanceof Error ? error.message : "That upload did not go through.";
-      setStatus({ phase: "error", note });
-      toast.error("The photograph did not upload", { description: note });
+      fail(readable(error));
     }
   }
 
@@ -101,25 +135,31 @@ export function ImageField({
     <div className="space-y-3">
       <input type="hidden" name="imageStorageId" value={storageId} />
 
-      <Label htmlFor="photograph">Photograph</Label>
+      <Label htmlFor="photograph">Photo</Label>
 
       <div className="flex items-start gap-4">
-        <div className="size-28 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => inputRef.current?.click()}
+          className="size-28 shrink-0 overflow-hidden rounded-xl border border-border bg-muted transition hover:border-foreground/40 disabled:opacity-60"
+          aria-label={shown ? "Change the photo" : "Choose a photo"}
+        >
           {shown ? (
             // Not next/image: this is a blob URL that changes as the admin
             // picks, and optimising a 120 KB preview would buy nothing.
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={shown}
-              alt={preview ? "The photograph you just chose" : (currentAlt ?? "")}
+              alt={preview ? "The photo you just chose" : (currentAlt ?? "")}
               className="size-full object-cover"
             />
           ) : (
-            <span className="flex size-full items-center justify-center text-xs text-muted-foreground">
-              None yet
+            <span className="flex size-full items-center justify-center px-2 text-center text-xs text-muted-foreground">
+              Tap to add a photo
             </span>
           )}
-        </div>
+        </button>
 
         <div className="min-w-0 space-y-2">
           <input
@@ -142,12 +182,12 @@ export function ImageField({
             disabled={busy}
             onClick={() => inputRef.current?.click()}
           >
-            {busy ? "Working…" : shown ? "Replace photograph" : "Choose photograph"}
+            {busy ? "Working…" : shown ? "Change photo" : "Choose photo"}
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            Any JPEG or PNG. It is resized and compressed here, in your browser, to
-            under {Math.round(MAX_BYTES / 1024)} KB before it uploads.
+            Any photo from your phone or computer. It is shrunk here, on your device, so it loads
+            fast in the shop — you do not need to resize anything first.
           </p>
 
           <p

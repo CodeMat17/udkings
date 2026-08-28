@@ -6,14 +6,13 @@ import { QuantityStepper } from "./quantity-stepper";
 import { useCart } from "@/lib/cart-store";
 import { unitPriceFor } from "@/lib/pricing";
 import { formatNaira } from "@/lib/format";
-import { swatchFor } from "@/lib/swatches";
 import type { Product } from "@/lib/types";
 
 /**
  * A trader counts the pieces they want of one style and one tier calculation
  * runs across the total — the same arithmetic that happens at the counter.
- * Which colours and which sizes make up that total is agreed on WhatsApp,
- * from the lists shown here; the shop confirms the mix in the reply.
+ * Which sizes make up that total is agreed on WhatsApp, from the list shown
+ * here; the shop confirms the mix in the reply.
  */
 export function MixedPack({ product }: { product: Product }) {
   const { add } = useCart();
@@ -27,7 +26,6 @@ export function MixedPack({ product }: { product: Product }) {
       slug: product.slug,
       name: product.name,
       image: product.image.src,
-      colors: product.colors,
       sizes: product.sizes,
       quantity,
       retailPrice: product.retailPrice,
@@ -35,32 +33,13 @@ export function MixedPack({ product }: { product: Product }) {
       wholesaleMinQty: product.wholesaleMinQty,
     });
     toast.success(`Pack added — ${quantity} pieces of ${product.name}`, {
-      description: `${formatNaira(priced.unitPrice)} each${priced.tier === "wholesale" ? " (wholesale)" : ""}. We agree the colour and size mix with you on WhatsApp.`,
+      description: `${formatNaira(priced.unitPrice)} each${priced.tier === "wholesale" ? " (wholesale)" : ""}. We agree the size mix with you on WhatsApp.`,
     });
   }
 
   return (
     <div className="mt-6 rounded-md border border-border bg-card p-5">
       <div>
-        <p className="label text-muted-foreground">Colours we have</p>
-        <ul className="mt-3 flex flex-wrap gap-3">
-          {product.colors.map((c) => (
-            <li
-              key={c}
-              className="flex min-h-11 items-center gap-2 rounded-sm border border-border px-3 font-semibold"
-            >
-              <span
-                aria-hidden="true"
-                className="size-5 rounded-full border border-border"
-                style={{ background: swatchFor(c) }}
-              />
-              {c}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mt-5">
         <p className="label text-muted-foreground">Sizes we have</p>
         <ul className="mt-3 flex flex-wrap gap-2">
           {product.sizes.map((size) => (
@@ -99,8 +78,8 @@ export function MixedPack({ product }: { product: Product }) {
           <span className="label text-wholesale">Wholesale</span>
         ) : null}
         <span className="block text-sm text-muted-foreground">
-          Pack total {formatNaira(priced.lineTotal)} — tell us the colour and
-          size breakdown on WhatsApp and we will confirm it.
+          Pack total {formatNaira(priced.lineTotal)} — tell us the size
+          breakdown on WhatsApp and we will confirm it.
         </span>
       </p>
     </div>

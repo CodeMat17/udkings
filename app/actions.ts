@@ -72,8 +72,7 @@ export async function createOrder(
     lines: payload.lines.map((line) => ({
       productId: line.productId,
       quantity: line.quantity,
-      // The choice, not the price. Convex checks it against the live lists.
-      ...(line.color ? { color: line.color } : {}),
+      // The choice, not the price. Convex checks it against the live list.
       ...(line.size ? { size: line.size } : {}),
     })),
   });
@@ -121,7 +120,7 @@ export async function searchProducts(query: string): Promise<ProductCardData[]> 
   if (q.length < 2) return [];
   const products = await getProducts();
   return products.filter((p) =>
-    [p.name, p.sku, p.categorySlug, ...p.colors, ...p.sizes]
+    [p.name, p.sku, p.categorySlug, ...p.sizes]
       .join(" ")
       .toLowerCase()
       .includes(q),
@@ -140,7 +139,7 @@ export async function productsBySlugs(slugs: string[]): Promise<ProductCardData[
 
 /**
  * Cart validation, run when the cart is shown. Products get deleted, prices
- * change and the colours and sizes a piece comes in change while a cart sits in
+ * change and the sizes a piece comes in change while a cart sits in
  * localStorage — the browser cannot know any of that, so the server tells it.
  */
 export type CartValidation = {
@@ -160,14 +159,9 @@ export async function validateCart(lines: CartLine[]): Promise<CartValidation> {
       notices.push(`${line.name} is no longer in the catalogue. Removed from your cart.`);
       continue;
     }
-    // A colour or size can stop being stocked while the cart sits in
-    // localStorage. Drop the stale choice and say so, rather than ordering it.
-    let color = line.color;
+    // A size can stop being stocked while the cart sits in localStorage. Drop
+    // the stale choice and say so, rather than ordering it.
     let size = line.size;
-    if (color && !product.colors.includes(color)) {
-      notices.push(`${product.name} is no longer available in ${color}. Choose another colour.`);
-      color = undefined;
-    }
     if (size && !product.sizes.includes(size)) {
       notices.push(`${product.name} is no longer available in size ${size}. Choose another size.`);
       size = undefined;
@@ -175,11 +169,9 @@ export async function validateCart(lines: CartLine[]): Promise<CartValidation> {
 
     kept.push({
       ...line,
-      ...(color ? { color } : { color: undefined }),
       ...(size ? { size } : { size: undefined }),
       name: product.name,
       image: product.image.src,
-      colors: product.colors,
       sizes: product.sizes,
       retailPrice: product.retailPrice,
       priceTiers: product.priceTiers,

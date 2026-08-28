@@ -17,9 +17,7 @@ function item(index: number): OrderItem {
     productName: `Test Piece ${index}`,
     slug: `test-piece-${index}`,
     image: `/catalogue/test-piece-${index}.jpg`,
-    colors: ["Black", "Bone"],
     sizes: ["S", "M", "L"],
-    color: "Black",
     size: "M",
     quantity: 2,
     unitPrice: 8500,
@@ -64,11 +62,10 @@ test("the WhatsApp message asks the shop for the delivery fee", () => {
     "the total is the goods — only the shop sets the delivery fee",
   );
   assert.match(message, /Landmark: Beside Zenith Bank/);
-  assert.match(message, /Colour: Black/, "the message states the colour chosen");
-  assert.match(message, /Size: M/);
+  assert.match(message, /Size: M/, "the message states the size chosen");
   assert.match(
     message,
-    /Please confirm the colours and sizes above/,
+    /Please confirm the sizes above/,
     "every line was chosen, so the shop confirms rather than asks",
   );
   assert.ok(!message.includes("*"), "the message is plain text, never markdown");
@@ -76,13 +73,12 @@ test("the WhatsApp message asks the shop for the delivery fee", () => {
 
 test("a line with no choice falls back to stating what we have", () => {
   const order = sampleOrder("UDK-20260818-903", 1);
-  order.items[0] = { ...order.items[0]!, color: undefined, size: undefined };
+  order.items[0] = { ...order.items[0]!, size: undefined };
   const message = composeOrderMessage(order);
-  assert.match(message, /Colour: any of Black, Bone/);
   assert.match(message, /Size: any of S, M, L/);
   assert.match(
     message,
-    /tell us the colour and the size you want/,
+    /tell us the size you want/,
     "an unchosen line still gets settled in the conversation",
   );
 });

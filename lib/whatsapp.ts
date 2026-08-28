@@ -21,19 +21,18 @@ export function composeOrderMessage(order: Order): string {
       `${i + 1}. ${item.productName} — ${item.quantity} pcs @ ${formatNaira(item.unitPrice)}${tier} = ${formatNaira(item.lineTotal)}`,
       // The chosen one when there is one; the availability otherwise, for a
       // line that pre-dates choosing.
-      `   Colour: ${item.color ?? `any of ${item.colors.join(", ")}`}`,
       `   Size: ${item.size ?? `any of ${item.sizes.join(", ")}`}`,
     ].join("\n");
   });
 
   const tail: string[] = [];
   tail.push("");
-  // The colour and size chosen on the product page ride along on every line
-  // above; the reply is where the shop confirms them.
+  // The size chosen on the product page rides along on every line above; the
+  // reply is where the shop confirms it.
   tail.push(
-    order.items.every((item) => item.color && item.size)
-      ? "Please confirm the colours and sizes above."
-      : "Please tell us the colour and the size you want for each piece and we will confirm.",
+    order.items.every((item) => item.size)
+      ? "Please confirm the sizes above."
+      : "Please tell us the size you want for each piece and we will confirm.",
   );
   tail.push("");
   tail.push(`Order type: ${order.fulfilment === "pickup" ? "Pickup" : "Delivery"}`);
@@ -88,18 +87,16 @@ export function composeOrderMessage(order: Order): string {
 }
 
 /**
- * Everything a customer might still want to ask about one piece — colour,
- * size, availability, price at quantity — goes to WhatsApp with the product
- * already identified, so nobody has to describe it twice.
+ * Everything a customer might still want to ask about one piece — size,
+ * availability, price at quantity — goes to WhatsApp with the product already
+ * identified, so nobody has to describe it twice.
  */
 export function composeProductEnquiry(input: {
   name: string;
   sku: string;
   url: string;
-  colors?: string[];
   sizes?: string[];
   /** What the customer picked on the page, when they picked. */
-  color?: string;
   size?: string;
   quantity?: number;
   question?: string;
@@ -110,8 +107,6 @@ export function composeProductEnquiry(input: {
     `Item: ${input.name}`,
     `SKU: ${input.sku}`,
   ];
-  if (input.color) lines.push(`Colour I want: ${input.color}`);
-  else if (input.colors?.length) lines.push(`Colours listed: ${input.colors.join(", ")}`);
   if (input.size) lines.push(`Size I want: ${input.size}`);
   else if (input.sizes?.length) lines.push(`Sizes listed: ${input.sizes.join(", ")}`);
   if (input.quantity && input.quantity > 1) lines.push(`Quantity: ${input.quantity} pieces`);

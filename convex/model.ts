@@ -12,14 +12,11 @@ export type PublicProduct = {
   slug: string;
   sku: string;
   description: string;
-  material: string;
-  careInstructions: string;
   categorySlug: string;
   image: { src: string; alt: string };
   retailPrice: number;
   priceTiers: { minQty: number; unitPrice: number }[];
   wholesaleMinQty: number | null;
-  colors: string[];
   sizes: string[];
   isFeatured: boolean;
   isNewArrival: boolean;
@@ -47,14 +44,11 @@ export function toProduct(doc: Doc<"products">): PublicProduct {
     slug: doc.slug,
     sku: doc.sku,
     description: doc.description,
-    material: doc.material,
-    careInstructions: doc.careInstructions,
     categorySlug: doc.categorySlug,
     image: { src: doc.imageSrc, alt: doc.imageAlt },
     retailPrice: doc.retailPrice,
     priceTiers: doc.priceTiers,
     wholesaleMinQty: doc.wholesaleMinQty,
-    colors: doc.colors,
     sizes: doc.sizes,
     isFeatured: doc.isFeatured,
     isNewArrival: doc.isNewArrival,

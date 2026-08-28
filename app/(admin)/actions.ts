@@ -54,6 +54,23 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+/**
+ * "UDK-JNS-4F2A". The middle is the category, the tail a stable digest of the
+ * name. Derived here rather than typed: it is exactly the kind of field an
+ * admin gets subtly wrong, and nothing about the shop needs a human to choose
+ * it. The same name in the same category always yields the same SKU.
+ */
+function makeSku(name: string, categorySlug: string): string {
+  const clean = slugify(name);
+  const category = (categorySlug.replace(/[^a-z]/g, "").slice(0, 3) || "gen").toUpperCase();
+
+  let hash = 0;
+  for (const char of clean) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  const tail = hash.toString(36).toUpperCase().slice(-4).padStart(4, "0");
+
+  return `UDK-${category}-${tail}`;
+}
+
 async function requireSession(): Promise<void> {
   const store = await cookies();
   const ok = await verifySessionToken(store.get(ADMIN_COOKIE)?.value);
@@ -127,14 +144,31 @@ export async function setArchived(productId: string, isArchived: boolean) {
  * Convex storage. Server actions have a body limit and would double the
  * transfer for no gain; the admin secret still never leaves this process.
  */
-export async function createUploadUrl(): Promise<string> {
-  await requireSession();
-  return fetchMutation(api.admin.generateUploadUrl, { secret: adminSecret() });
+export type UploadUrlResult =
+  | { ok: true; url: string }
+  | { ok: false; error: string };
+
+export async function createUploadUrl(): Promise<UploadUrlResult> {
+  // Deliberately not requireSession(): that redirects, and a redirect thrown
+  // out of an action called from a click handler reaches the admin as an opaque
+  // failure. A signed-out admin should be told they are signed out.
+  const store = await cookies();
+  if (!(await verifySessionToken(store.get(ADMIN_COOKIE)?.value))) {
+    return { ok: false, error: "You have been signed out. Open the admin again and sign in, then choose the photograph." };
+  }
+
+  try {
+    const url = await fetchMutation(api.admin.generateUploadUrl, { secret: adminSecret() });
+    return { ok: true, url };
+  } catch (error) {
+    return { ok: false, error: message(error) };
+  }
 }
 
 /** Removes a blob whose product was never saved. Best-effort by design. */
 export async function discardUpload(storageId: string): Promise<void> {
-  await requireSession();
+  const store = await cookies();
+  if (!(await verifySessionToken(store.get(ADMIN_COOKIE)?.value))) return;
   try {
     await fetchMutation(api.admin.deleteUpload, {
       secret: adminSecret(),
@@ -188,14 +222,14 @@ function priceTiers(form: FormData, retailPrice: number) {
       const minQty = Number(row.minQty);
       const unitPrice = Number(row.unitPrice);
       if (!Number.isInteger(minQty) || minQty < 2) {
-        throw new Error(`Wholesale tier ${index + 1} needs a quantity of 2 or more.`);
+        throw new Error(`Bulk price ${index + 1}: the quantity must be a whole number, 2 or more.`);
       }
       if (!Number.isInteger(unitPrice) || unitPrice <= 0) {
-        throw new Error(`Wholesale tier ${index + 1} needs a whole naira price.`);
+        throw new Error(`Bulk price ${index + 1}: fill in the price each, in whole naira.`);
       }
       if (unitPrice >= retailPrice) {
         throw new Error(
-          `Wholesale tier ${index + 1} is not cheaper than the retail price.`,
+          `Bulk price ${index + 1} is not cheaper than the normal price. A bulk price has to be a discount.`,
         );
       }
       return { minQty, unitPrice };
@@ -205,52 +239,75 @@ function priceTiers(form: FormData, retailPrice: number) {
   return [{ minQty: 1, unitPrice: retailPrice }, ...tiers];
 }
 
+/**
+ * Everything the shop needs, from the few things the admin actually typed.
+ *
+ * The web address, the SKU and the search listing are *derived*, never typed.
+ * They are the fields an admin gets subtly wrong — a stray capital, a space, a
+ * title that drifts from the name — and every one of them can be rebuilt from
+ * the name, the category and the description. Asking for them was asking the
+ * shopkeeper to do the computer's job.
+ *
+ * An existing piece keeps the web address it was published under: a live link
+ * that starts 404-ing because a typo was fixed in the name is worse than a
+ * slightly stale address.
+ */
+/**
+ * Everything the shop needs, from the few things the admin actually typed.
+ *
+ * The web address, the SKU and the search listing are *derived*, never typed.
+ * They are the fields an admin gets subtly wrong — a stray capital, a space, a
+ * title that drifts from the name — and every one of them can be rebuilt from
+ * the name, the category and the description. Asking for them was asking the
+ * shopkeeper to do the computer's job.
+ *
+ * An existing piece keeps the web address it was published under: a live link
+ * that starts 404-ing because a typo was fixed in the name is worse than a
+ * slightly stale address.
+ */
 function productArgs(form: FormData) {
   const name = text(form, "name");
   if (!name) throw new Error("A piece needs a name.");
 
-  const slug = text(form, "slug") || slugify(name);
+  const slug = text(form, "currentSlug") || slugify(name);
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-    throw new Error("The web address may only use lowercase letters, numbers and dashes.");
+    throw new Error("A name needs at least one letter or number in it.");
   }
 
-  const imageAlt = text(form, "imageAlt");
-  if (!imageAlt) {
-    throw new Error("Describe the photograph — a screen reader reads this aloud.");
-  }
+  const categorySlug = text(form, "categorySlug");
+  if (!categorySlug) throw new Error("Choose which part of the shop this belongs in.");
 
-  const colors = list(form, "colors");
+  const description = text(form, "description");
+
   const sizes = list(form, "sizes");
-  if (colors.length === 0) throw new Error("List at least one colour you have.");
-  if (sizes.length === 0) throw new Error("List at least one size you have.");
+  if (sizes.length === 0) throw new Error("Choose at least one size you have in stock.");
 
-  const retailPrice = naira(form, "retailPrice", "The retail price");
+  const retailPrice = naira(form, "retailPrice", "The price");
   const tiers = priceTiers(form, retailPrice);
-  const wholesale = text(form, "wholesaleMinQty");
-  const wholesaleMinQty = wholesale === "" ? null : Number(wholesale);
-  if (wholesaleMinQty !== null && (!Number.isInteger(wholesaleMinQty) || wholesaleMinQty < 2)) {
-    throw new Error("The wholesale minimum must be a whole number of 2 or more.");
-  }
+
+  // The wholesale minimum is the first bulk tier, not a separate number to keep
+  // in step with it. Two fields that had to agree were two chances to disagree.
+  const wholesaleMinQty = tiers[1]?.minQty ?? null;
 
   return {
     name,
     slug,
-    sku: text(form, "sku") || slug.toUpperCase(),
-    description: text(form, "description"),
-    material: text(form, "material"),
-    careInstructions: text(form, "careInstructions"),
-    categorySlug: text(form, "categorySlug"),
-    imageAlt,
+    sku: makeSku(name, categorySlug),
+    description,
+    categorySlug,
+    // Screen readers read this aloud. The name of the piece is a truer
+    // description than anything an admin would have typed into a field whose
+    // purpose they had to have explained to them.
+    imageAlt: name,
     retailPrice,
     priceTiers: tiers,
     wholesaleMinQty,
-    colors,
     sizes,
     isFeatured: form.get("isFeatured") === "on",
     isNewArrival: form.get("isNewArrival") === "on",
     isBestSeller: form.get("isBestSeller") === "on",
-    seoTitle: text(form, "seoTitle") || name,
-    seoDescription: text(form, "seoDescription") || text(form, "description").slice(0, 155),
+    seoTitle: name,
+    seoDescription: description.slice(0, 155),
   };
 }
 

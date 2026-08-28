@@ -103,16 +103,6 @@ export default async function ProductPage(props: PageProps<"/product/[slug]">) {
       <Reveal as="section" className="shell mt-16">
         <h2 className="display text-2xl">About this piece</h2>
         <p className="mt-4 max-w-[68ch] text-lg">{product.description}</p>
-        <dl className="mt-8 grid max-w-[68ch] gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="label text-muted-foreground">Material</dt>
-            <dd className="mt-1">{product.material}</dd>
-          </div>
-          <div>
-            <dt className="label text-muted-foreground">Care</dt>
-            <dd className="mt-1">{product.careInstructions}</dd>
-          </div>
-        </dl>
         <ProductEnquiry product={product} />
       </Reveal>
 
@@ -122,7 +112,7 @@ export default async function ProductPage(props: PageProps<"/product/[slug]">) {
           <p className="mt-2 max-w-[60ch] text-muted-foreground">
             {product.wholesaleMinQty === null
               ? "This piece is sold at one price."
-              : `Wholesale starts from ${product.wholesaleMinQty} pieces. Mix colours and sizes across this style — the ladder counts the total.`}
+              : `Wholesale starts from ${product.wholesaleMinQty} pieces. Mix sizes across this style — the ladder counts the total.`}
           </p>
           <div className="mt-6 overflow-x-auto">
             <table className="w-full min-w-[420px] border-collapse text-left">

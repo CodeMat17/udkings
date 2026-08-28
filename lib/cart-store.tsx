@@ -23,7 +23,6 @@ function parseLines(raw: unknown): CartLine[] {
       typeof line === "object" &&
       line !== null &&
       "productId" in line &&
-      "colors" in line &&
       "sizes" in line &&
       "priceTiers" in line,
   );
@@ -32,12 +31,12 @@ function parseLines(raw: unknown): CartLine[] {
 const store = new LocalStore<CartLine[]>(KEY, [], parseLines);
 
 /**
- * One line per product *and* chosen colour and size — the same style in two
- * colours is two lines, because they are two different things to hand over.
- * Lines added before choosing existed key on the product alone.
+ * One line per product *and* chosen size — the same style in two sizes is two
+ * lines, because they are two different things to hand over. Lines added
+ * before choosing existed key on the product alone.
  */
-export function lineKey(line: Pick<CartLine, "productId" | "color" | "size">) {
-  return `${line.productId}|${line.color ?? ""}|${line.size ?? ""}`;
+export function lineKey(line: Pick<CartLine, "productId" | "size">) {
+  return `${line.productId}|${line.size ?? ""}`;
 }
 
 function sameLine(line: CartLine, key: string) {
@@ -83,16 +82,15 @@ export function useCart() {
     store.update((current) => current.filter((l) => !sameLine(l, key)));
   }, []);
 
-  /** Swapping the colour or size of a line already in the cart. */
+  /** Swapping the size of a line already in the cart. */
   const setChoice = useCallback(
-    (key: string, choice: { color?: string; size?: string }) => {
+    (key: string, choice: { size?: string }) => {
       store.update((current) => {
         const target = current.find((l) => sameLine(l, key));
         if (!target) return current;
         // An empty selection is "not chosen", never an empty string on the order.
         const next: CartLine = {
           ...target,
-          ...("color" in choice ? { color: choice.color || undefined } : {}),
           ...("size" in choice ? { size: choice.size || undefined } : {}),
         };
         const nextKey = lineKey(next);
@@ -147,9 +145,7 @@ export function useCart() {
         productName: l.name,
         slug: l.slug,
         image: l.image,
-        colors: l.colors,
         sizes: l.sizes,
-        ...(l.color ? { color: l.color } : {}),
         ...(l.size ? { size: l.size } : {}),
         quantity: l.quantity,
         unitPrice: l.unitPrice,
@@ -161,8 +157,8 @@ export function useCart() {
 
 /**
  * Revalidates the stored cart against the server once, wherever the cart is
- * actually shown. Products get deleted, prices change and the colours and sizes
- * a piece comes in change while a cart sits in localStorage; every adjustment is
+ * actually shown. Products get deleted, prices change and the sizes a piece
+ * comes in change while a cart sits in localStorage; every adjustment is
  * announced plainly.
  */
 export function useCartValidation(): boolean {

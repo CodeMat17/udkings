@@ -9,8 +9,8 @@ import { v } from "convex/values";
  * - `productId` is a stable string (`prd_001`) alongside Convex's own `_id`.
  *   Carts live in the customer's browser and orders are a permanent record;
  *   both reference products by this id, so it must survive a re-seed.
- * - There is no variant or stock table. Per DECISIONS.md, the colour and size
- *   lists *are* the availability — the admin types in what is in the shop.
+ * - There is no variant or stock table. Per DECISIONS.md, the size list *is*
+ *   the availability — the admin types in what is in the shop.
  */
 
 const priceTier = v.object({
@@ -23,10 +23,8 @@ const orderItem = v.object({
   productName: v.string(),
   slug: v.string(),
   image: v.string(),
-  colors: v.array(v.string()),
   sizes: v.array(v.string()),
   /** What the customer chose on the product page, when they chose. */
-  color: v.optional(v.string()),
   size: v.optional(v.string()),
   quantity: v.number(),
   unitPrice: v.number(),
@@ -51,8 +49,6 @@ export default defineSchema({
     slug: v.string(),
     sku: v.string(),
     description: v.string(),
-    material: v.string(),
-    careInstructions: v.string(),
     categorySlug: v.string(),
     imageSrc: v.string(),
     imageAlt: v.string(),
@@ -66,7 +62,6 @@ export default defineSchema({
     retailPrice: v.number(),
     priceTiers: v.array(priceTier),
     wholesaleMinQty: v.union(v.number(), v.null()),
-    colors: v.array(v.string()),
     sizes: v.array(v.string()),
     isFeatured: v.boolean(),
     isNewArrival: v.boolean(),

@@ -21,7 +21,6 @@ export function ProductEnquiry({ product }: { product: Product }) {
       name: product.name,
       sku: product.sku,
       url: `${SITE_URL}/product/${product.slug}`,
-      colors: product.colors,
       sizes: product.sizes,
       question,
     }),
@@ -33,10 +32,9 @@ export function ProductEnquiry({ product }: { product: Product }) {
         Ask us anything about this piece
       </label>
       <p className="mt-1 text-sm text-muted-foreground">
-        The colours and sizes listed above are the ones we have. Ask for the one
-        you want &mdash; or about fabric, fit, a bulk price, when a colour is
-        coming back &mdash; on {BUSINESS.phoneDisplay} and we will confirm it in
-        the reply.
+        The sizes listed above are the ones we have. Ask for the one you want
+        &mdash; or about fit, a bulk price, when a piece is coming back &mdash;
+        on {BUSINESS.phoneDisplay} and we will confirm it in the reply.
       </p>
       <Textarea
         id="enquiry"

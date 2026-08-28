@@ -15,7 +15,6 @@ export type ShopQuery = {
   q?: string;
   category?: string;
   size?: string;
-  color?: string;
   sort?: string;
   wholesale?: string;
 };
@@ -31,7 +30,6 @@ export function readQuery(
     q: asString(params.q),
     category: asString(params.category),
     size: asString(params.size),
-    color: asString(params.color),
     sort: asString(params.sort),
     wholesale: asString(params.wholesale),
   };
@@ -48,7 +46,7 @@ export function applyQuery(query: ShopQuery, source: Product[]): Product[] {
   if (query.q) {
     const q = query.q.trim().toLowerCase();
     results = results.filter((p) =>
-      [p.name, p.sku, p.categorySlug, p.material, ...p.colors, ...p.sizes]
+      [p.name, p.sku, p.categorySlug, ...p.sizes]
         .join(" ")
         .toLowerCase()
         .includes(q),
@@ -59,9 +57,6 @@ export function applyQuery(query: ShopQuery, source: Product[]): Product[] {
   }
   if (query.size) {
     results = results.filter((p) => p.sizes.includes(query.size!));
-  }
-  if (query.color) {
-    results = results.filter((p) => p.colors.includes(query.color!));
   }
   if (query.wholesale === "1") {
     results = results.filter((p) => p.wholesaleMinQty !== null);
@@ -94,11 +89,6 @@ export function sizesIn(products: Product[]): string[] {
     if (ai !== -1 || bi !== -1) return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
     return Number(a) - Number(b);
   });
-}
-
-/** Every colour present in a given set of products. */
-export function colorsIn(products: Product[]): string[] {
-  return Array.from(new Set(products.flatMap((p) => p.colors))).sort();
 }
 
 /** "From ₦7,200 each at 6 pieces" — used on listing summaries. */

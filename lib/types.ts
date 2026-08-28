@@ -29,15 +29,11 @@ export type Product = {
   slug: string;
   sku: string;
   description: string;
-  material: string;
-  careInstructions: string;
   categorySlug: string;
   image: ProductImage;
   retailPrice: number;
   priceTiers: PriceTier[];
   wholesaleMinQty: number | null;
-  /** Entered by the admin at upload. Every colour listed is one we have. */
-  colors: string[];
   /** Entered by the admin at upload. Every size listed is one we have. */
   sizes: string[];
   isFeatured: boolean;
@@ -60,10 +56,8 @@ export type CartLine = {
   name: string;
   image: string;
   /** What the piece comes in — the whole availability, kept so the cart can re-offer it. */
-  colors: string[];
   sizes: string[];
   /** The one the customer chose on the product page. */
-  color?: string;
   size?: string;
   quantity: number;
   retailPrice: number;
@@ -87,10 +81,8 @@ export type OrderItem = {
   slug: string;
   image: string;
   /** Carried onto the order so the WhatsApp message can state them. */
-  colors: string[];
   sizes: string[];
-  /** The chosen one, confirmed server-side against the live lists. */
-  color?: string;
+  /** The chosen one, confirmed server-side against the live list. */
   size?: string;
   quantity: number;
   unitPrice: number;

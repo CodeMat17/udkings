@@ -11,8 +11,10 @@
 import type * as admin from "../admin.js";
 import type * as auth from "../auth.js";
 import type * as catalog from "../catalog.js";
+import type * as migrations from "../migrations.js";
 import type * as model from "../model.js";
 import type * as orders from "../orders.js";
+import type * as reset from "../reset.js";
 import type * as seed from "../seed.js";
 
 import type {
@@ -25,8 +27,10 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   auth: typeof auth;
   catalog: typeof catalog;
+  migrations: typeof migrations;
   model: typeof model;
   orders: typeof orders;
+  reset: typeof reset;
   seed: typeof seed;
 }>;
 

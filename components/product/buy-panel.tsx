@@ -13,7 +13,7 @@ import { useCart } from "@/lib/cart-store";
 import { rememberViewed, useWishlist } from "@/lib/wishlist-store";
 import { unitPriceFor } from "@/lib/pricing";
 import { formatNaira } from "@/lib/format";
-import { ColorPicker, SizePicker } from "./variant-picker";
+import { SizePicker } from "./variant-picker";
 import { composeProductEnquiry } from "@/lib/whatsapp";
 import { BUSINESS, SITE_URL, waLink } from "@/lib/business";
 import { dur, ease } from "@/lib/motion";
@@ -28,9 +28,6 @@ export function BuyPanel({ product }: { product: Product }) {
 
   const [quantity, setQuantity] = useState(1);
   // One option is not a choice — pre-select it rather than asking for it.
-  const [color, setColor] = useState<string | undefined>(
-    product.colors.length === 1 ? product.colors[0] : undefined,
-  );
   const [size, setSize] = useState<string | undefined>(
     product.sizes.length === 1 ? product.sizes[0] : undefined,
   );
@@ -41,10 +38,9 @@ export function BuyPanel({ product }: { product: Product }) {
   }, [product.slug]);
 
   // Everything listed is in the shop: the admin types in only what is there as
-  // they upload the piece, so the lists are the availability and every option
-  // is selectable.
+  // they upload the piece, so the list is the availability and every option is
+  // selectable.
   const priced = unitPriceFor(product, quantity);
-  const needsColor = product.colors.length > 0 && !color;
   const needsSize = product.sizes.length > 0 && !size;
 
   const enquiryHref = waLink(
@@ -52,9 +48,7 @@ export function BuyPanel({ product }: { product: Product }) {
       name: product.name,
       sku: product.sku,
       url: `${SITE_URL}/product/${product.slug}`,
-      colors: product.colors,
       sizes: product.sizes,
-      color,
       size,
       quantity,
     }),
@@ -62,17 +56,11 @@ export function BuyPanel({ product }: { product: Product }) {
 
   /** Returns false when a choice is still missing, so "Order now" can stop. */
   function onAdd(): boolean {
-    if (needsColor || needsSize) {
+    if (needsSize) {
       setMissing(true);
-      toast.error(
-        needsColor && needsSize
-          ? "Choose a colour and a size first."
-          : needsColor
-            ? "Choose a colour first."
-            : "Choose a size first.",
-      );
+      toast.error("Choose a size first.");
       document
-        .getElementById(needsColor ? "buy-colour" : "buy-size")
+        .getElementById("buy-size")
         ?.scrollIntoView({ block: "center", behavior: "smooth" });
       return false;
     }
@@ -82,16 +70,14 @@ export function BuyPanel({ product }: { product: Product }) {
       slug: product.slug,
       name: product.name,
       image: product.image.src,
-      colors: product.colors,
       sizes: product.sizes,
-      ...(color ? { color } : {}),
       ...(size ? { size } : {}),
       quantity,
       retailPrice: product.retailPrice,
       priceTiers: product.priceTiers,
       wholesaleMinQty: product.wholesaleMinQty,
     });
-    const chosen = [color, size].filter(Boolean).join(" · ");
+    const chosen = size ?? "";
     toast.success(`Added to cart — ${product.name}`, {
       description: `${chosen ? `${chosen} — ` : ""}${quantity} ${quantity === 1 ? "piece" : "pieces"} at ${formatNaira(priced.unitPrice)} each${priced.tier === "wholesale" ? " (wholesale)" : ""}.`,
     });
@@ -147,25 +133,6 @@ export function BuyPanel({ product }: { product: Product }) {
 
       {/* Chosen here, and carried through the cart onto the order and the
           WhatsApp message. Everything listed is in the shop. */}
-      {product.colors.length > 0 ? (
-        <div id="buy-colour">
-          <ColorPicker
-            colors={product.colors}
-            value={color}
-            onChange={(next) => {
-              setColor(next);
-              setMissing(false);
-            }}
-            name="buy-colour-choice"
-          />
-          {missing && needsColor ? (
-            <p role="alert" className="mt-2 text-sm font-bold text-destructive">
-              Choose a colour.
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-
       {product.sizes.length > 0 ? (
         <div id="buy-size">
           <SizePicker

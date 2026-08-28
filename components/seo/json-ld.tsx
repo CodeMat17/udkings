@@ -83,7 +83,6 @@ export function ProductJsonLd({ product }: { product: Product }) {
         name: product.name,
         description: product.seoDescription,
         sku: product.sku,
-        material: product.material,
         image: `${SITE_URL}${product.image.src}`,
         brand: { "@type": "Brand", name: BUSINESS.name },
         offers: {

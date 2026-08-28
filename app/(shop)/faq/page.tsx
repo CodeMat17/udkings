@@ -13,8 +13,8 @@ const FAQS = [
     a: "Every product page shows the quantity the wholesale price starts at, written in words. Add that many pieces and the price on the page changes to the wholesale rate as you count up. There is no separate wholesale list and no negotiation needed to find out the number.",
   },
   {
-    q: "Can I mix sizes and colours in a wholesale order?",
-    a: "Yes, within one style. The ladder counts the total pieces of that style, not the pieces per size, and the pack builder on the wholesale page does the arithmetic. Tell us the colour and size breakdown you want on WhatsApp and we confirm it before payment.",
+    q: "Can I mix sizes in a wholesale order?",
+    a: "Yes, within one style. The ladder counts the total pieces of that style, not the pieces per size, and the pack builder on the wholesale page does the arithmetic. Tell us the size breakdown you want on WhatsApp and we confirm it before payment.",
   },
   {
     q: "Do I pay on the website?",
@@ -33,12 +33,12 @@ const FAQS = [
     a: "Bring it back to the shop within three days, unworn and with its tags, and we will exchange it for another size or another piece of the same value.",
   },
   {
-    q: "Are all the colours and sizes on a product available?",
-    a: "Yes. We only list a colour or a size when we have it, so everything on a product page is something you can buy. You do not choose them on the site — tell us the colour and the size you want in the WhatsApp message, and we confirm it in the reply. If you want something that is not listed, ask there too; there is an 'Ask about this piece' button on every product.",
+    q: "Are all the sizes on a product available?",
+    a: "Yes. We only list a size when we have it, so everything on a product page is something you can buy. Tell us the size you want in the WhatsApp message and we confirm it in the reply. If you want something that is not listed, ask there too; there is an 'Ask about this piece' button on every product.",
   },
   {
-    q: "Are the colours in the photographs accurate?",
-    a: "The photographs are shot on white and we never dim them, including in dark mode, because fabric colour is the purchase decision. Each piece has one photograph — if you want another angle or a shot in daylight, ask on WhatsApp and we will send it.",
+    q: "Are the photographs accurate?",
+    a: "The photographs are shot on white and we never dim them, including in dark mode, because what the fabric actually looks like is the purchase decision. Each piece has one photograph — if you want another angle or a shot in daylight, ask on WhatsApp and we will send it.",
   },
 ];
 

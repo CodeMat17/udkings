@@ -12,8 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { swatchFor } from "@/lib/swatches";
-
 import { lineKey, reTieringNotice, useCart, useCartValidation } from "@/lib/cart-store";
 import { formatNaira } from "@/lib/format";
 
@@ -94,43 +92,6 @@ export function CartView({
                   {/* Changing a choice here is the same act as choosing it on
                       the product page — no need to go back for it. */}
                   <div className="mt-2 flex flex-wrap gap-3">
-                    {line.colors.length > 0 ? (
-                      <div>
-                        <label
-                          htmlFor={`${key}-colour`}
-                          className="label block text-muted-foreground"
-                        >
-                          Colour
-                        </label>
-                        <Select
-                          items={line.colors.map((c) => ({ label: c, value: c }))}
-                          value={line.color ?? null}
-                          onValueChange={(value) =>
-                            setChoice(key, { color: (value as string | null) ?? undefined })
-                          }
-                        >
-                          <SelectTrigger
-                            id={`${key}-colour`}
-                            aria-label={`Colour for ${line.name}`}
-                            className="mt-1 h-11 rounded-sm bg-card px-3 font-semibold data-[size=default]:h-11"
-                          >
-                            <SelectValue placeholder="Choose a colour" />
-                          </SelectTrigger>
-                          <SelectContent className="p-1">
-                            {line.colors.map((c) => (
-                              <SelectItem key={c} value={c} className="py-2">
-                                <span
-                                  aria-hidden="true"
-                                  className="size-4 shrink-0 rounded-full border border-border"
-                                  style={{ background: swatchFor(c) }}
-                                />
-                                {c}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    ) : null}
                     {line.sizes.length > 0 ? (
                       <div>
                         <label
@@ -164,9 +125,9 @@ export function CartView({
                       </div>
                     ) : null}
                   </div>
-                  {!line.color || !line.size ? (
+                  {!line.size ? (
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Pick a colour and a size, or we settle them on WhatsApp.
+                      Pick a size, or we settle it on WhatsApp.
                     </p>
                   ) : null}
 

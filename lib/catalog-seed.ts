@@ -111,8 +111,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-JNS-001",
     description:
       "Rigid raw indigo denim with a high rise that holds the waist and a straight leg that falls clean over a heel. It breaks in to your shape after a week and keeps its colour through a Lagos rainy season.",
-    material: "98% cotton, 2% elastane rigid denim, 12.5oz",
-    careInstructions: "Cold machine wash inside out, hang to dry, warm iron.",
     categorySlug: "jeans",
     retailPrice: 8500,
     priceTiers: [
@@ -122,7 +120,6 @@ const SEEDS: Seed[] = [
       { minQty: 12, unitPrice: 6600 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Raw Indigo", "Mid Blue", "Black"],
     sizes: ["8", "10", "12", "14", "16", "18"],
     isFeatured: true,
     isNewArrival: true,
@@ -140,8 +137,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-JNS-002",
     description:
       "A soft stone-washed mom fit with room through the thigh and a tapered ankle. The easiest jeans in the shop to sell — traders reorder these first.",
-    material: "100% cotton stone-washed denim, 11oz",
-    careInstructions: "Cold machine wash, tumble dry low, warm iron.",
     categorySlug: "jeans",
     retailPrice: 7800,
     priceTiers: [
@@ -150,7 +145,6 @@ const SEEDS: Seed[] = [
       { minQty: 12, unitPrice: 6200 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Stone Wash", "Light Blue"],
     sizes: ["8", "10", "12", "14", "16", "18", "20"],
     isFeatured: true,
     isNewArrival: false,
@@ -168,8 +162,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-TOP-001",
     description:
       "Heavy ribbed knit with a square neck and a snap gusset, so it stays tucked all day. Thick enough to be opaque under sunlight — we checked.",
-    material: "92% cotton, 8% elastane heavy rib",
-    careInstructions: "Hand wash cold, reshape and dry flat. Do not bleach.",
     categorySlug: "tops",
     retailPrice: 4200,
     priceTiers: [
@@ -178,7 +170,6 @@ const SEEDS: Seed[] = [
       { minQty: 12, unitPrice: 3200 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Black", "Chocolate", "Bone", "Hibiscus"],
     sizes: ["S", "M", "L", "XL"],
     isFeatured: true,
     isNewArrival: true,
@@ -187,7 +178,7 @@ const SEEDS: Seed[] = [
     image: { alt: "Ribbed square-neck bodysuit in black, front view" },
     seoTitle: "Ribbed Square-Neck Bodysuit",
     seoDescription:
-      "Heavy ribbed square-neck bodysuit in four colours, sizes S to XL. Opaque, snap-fastened and priced for wholesale from six pieces in Lagos.",
+      "Heavy ribbed square-neck bodysuit, sizes S to XL. Opaque, snap-fastened and priced for wholesale from six pieces in Lagos.",
     createdAt: EPOCH + 46 * DAY,
   },
   {
@@ -196,8 +187,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-TOP-002",
     description:
       "Boned corset seams through a stretch woven body. Structured enough to wear alone with jeans, soft enough to sit in through a whole event.",
-    material: "Stretch cotton twill with light boning",
-    careInstructions: "Hand wash cold, hang to dry. Iron on reverse.",
     categorySlug: "tops",
     retailPrice: 5600,
     priceTiers: [
@@ -205,7 +194,6 @@ const SEEDS: Seed[] = [
       { minQty: 6, unitPrice: 4900 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Bone", "Black", "Olive"],
     sizes: ["S", "M", "L", "XL"],
     isFeatured: false,
     isNewArrival: true,
@@ -223,9 +211,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-GWN-001",
     description:
       "Weighted satin that pours rather than clings, cut on the bias with a cowl neck and a low back. It photographs the way it looks in person, which is rarer than it sounds.",
-    material: "Heavy-weight polyester satin, bias cut",
-    careInstructions:
-      "Dry clean, or hand wash cold and hang immediately. Cool iron on reverse.",
     categorySlug: "gowns",
     retailPrice: 14500,
     priceTiers: [
@@ -234,7 +219,6 @@ const SEEDS: Seed[] = [
       { minQty: 8, unitPrice: 12000 },
     ],
     wholesaleMinQty: 8,
-    colors: ["Champagne", "Emerald", "Midnight"],
     sizes: ["8", "10", "12", "14", "16"],
     isFeatured: true,
     isNewArrival: true,
@@ -252,8 +236,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-GWN-002",
     description:
       "A long-sleeve pleated gown with a lined bodice and a skirt that moves without riding up. Made for a full Sunday, not a photograph.",
-    material: "Lined crepe with knife pleats",
-    careInstructions: "Hand wash cold, hang to dry. Do not tumble dry.",
     categorySlug: "gowns",
     retailPrice: 12000,
     priceTiers: [
@@ -261,7 +243,6 @@ const SEEDS: Seed[] = [
       { minQty: 6, unitPrice: 10500 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Wine", "Navy", "Sage"],
     sizes: ["10", "12", "14", "16", "18"],
     isFeatured: false,
     isNewArrival: false,
@@ -279,8 +260,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-SKT-001",
     description:
       "Mid-blue denim, high waist, back slit cut long enough to walk properly. Sits at the calf on most frames.",
-    material: "Non-stretch cotton denim, 10oz",
-    careInstructions: "Cold machine wash inside out, hang to dry.",
     categorySlug: "skirts",
     retailPrice: 6800,
     priceTiers: [
@@ -289,7 +268,6 @@ const SEEDS: Seed[] = [
       { minQty: 12, unitPrice: 5400 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Mid Blue", "Black"],
     sizes: ["8", "10", "12", "14", "16"],
     isFeatured: true,
     isNewArrival: false,
@@ -307,8 +285,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-SKT-002",
     description:
       "Fine knife pleats in a matte satin with a fully elasticated waist, so one size covers more customers than you would expect.",
-    material: "Matte polyester satin, elasticated waist",
-    careInstructions: "Hand wash cold, hang to dry. Do not iron the pleats flat.",
     categorySlug: "skirts",
     retailPrice: 5900,
     priceTiers: [
@@ -316,7 +292,6 @@ const SEEDS: Seed[] = [
       { minQty: 6, unitPrice: 5100 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Champagne", "Rust", "Black"],
     sizes: ["S", "M", "L", "XL"],
     isFeatured: false,
     isNewArrival: true,
@@ -334,8 +309,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-BMP-001",
     description:
       "Double-layer jersey that does not go sheer when you bend, with a wide waistband that stays where you put it. The wholesale line traders buy by the dozen.",
-    material: "Double-layer cotton jersey with elastane",
-    careInstructions: "Machine wash cold, tumble dry low.",
     categorySlug: "bump-shorts",
     retailPrice: 3200,
     priceTiers: [
@@ -345,7 +318,6 @@ const SEEDS: Seed[] = [
       { minQty: 24, unitPrice: 2100 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Black", "Grey", "Chocolate"],
     sizes: ["S", "M", "L", "XL", "XXL"],
     isFeatured: true,
     isNewArrival: false,
@@ -363,8 +335,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-JKT-001",
     description:
       "A boxy, dropped-shoulder denim jacket in rigid mid-blue. Wears over a gown at night and over a bodysuit in the day.",
-    material: "Rigid cotton denim, 12oz, metal hardware",
-    careInstructions: "Cold machine wash inside out, hang to dry.",
     categorySlug: "jackets",
     retailPrice: 11500,
     priceTiers: [
@@ -372,7 +342,6 @@ const SEEDS: Seed[] = [
       { minQty: 6, unitPrice: 10200 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Mid Blue", "Black"],
     sizes: ["S", "M", "L", "XL"],
     isFeatured: false,
     isNewArrival: true,
@@ -390,8 +359,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-TRS-001",
     description:
       "A fluid wide leg with a flat front and a high rise. The fabric holds a line in heat instead of collapsing at midday.",
-    material: "Textured crepe with a soft handle",
-    careInstructions: "Hand wash cold, hang to dry. Warm iron.",
     categorySlug: "trousers",
     retailPrice: 7400,
     priceTiers: [
@@ -400,7 +367,6 @@ const SEEDS: Seed[] = [
       { minQty: 12, unitPrice: 5900 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Black", "Camel", "Olive"],
     sizes: ["S", "M", "L", "XL"],
     isFeatured: true,
     isNewArrival: false,
@@ -418,8 +384,6 @@ const SEEDS: Seed[] = [
     sku: "UDK-SET-001",
     description:
       "Matching ribbed top and wide trouser. One decision, a whole outfit — and the pieces still work apart, which is why it sells twice.",
-    material: "Heavy rib knit, cotton blend",
-    careInstructions: "Machine wash cold inside out, dry flat.",
     categorySlug: "two-piece-sets",
     retailPrice: 9800,
     priceTiers: [
@@ -429,7 +393,6 @@ const SEEDS: Seed[] = [
       { minQty: 12, unitPrice: 7700 },
     ],
     wholesaleMinQty: 6,
-    colors: ["Chocolate", "Black", "Sage"],
     sizes: ["S", "M", "L", "XL"],
     isFeatured: true,
     isNewArrival: true,

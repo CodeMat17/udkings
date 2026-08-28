@@ -19,14 +19,11 @@ const productFields = {
   slug: v.string(),
   sku: v.string(),
   description: v.string(),
-  material: v.string(),
-  careInstructions: v.string(),
   categorySlug: v.string(),
   imageAlt: v.string(),
   retailPrice: v.number(),
   priceTiers: v.array(v.object({ minQty: v.number(), unitPrice: v.number() })),
   wholesaleMinQty: v.union(v.number(), v.null()),
-  colors: v.array(v.string()),
   sizes: v.array(v.string()),
   isFeatured: v.boolean(),
   isNewArrival: v.boolean(),
@@ -107,7 +104,7 @@ export const generateUploadUrl = mutation({
 });
 
 /** Hard ceiling on a stored photograph. Mirrored in `lib/image.ts`. */
-export const MAX_IMAGE_BYTES = 200 * 1024;
+export const MAX_IMAGE_BYTES = 500 * 1024;
 
 const ALLOWED_IMAGE_TYPES = ["image/webp", "image/jpeg", "image/png"];
 

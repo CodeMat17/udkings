@@ -48,7 +48,6 @@ export const create = mutation({
       v.object({
         productId: v.string(),
         quantity: v.number(),
-        color: v.optional(v.string()),
         size: v.optional(v.string()),
       }),
     ),
@@ -80,13 +79,9 @@ export const create = mutation({
         productName: doc.name,
         slug: doc.slug,
         image: doc.imageSrc,
-        // The lists are stated from the catalogue, never from the client. The
+        // The list is stated from the catalogue, never from the client. The
         // customer's choice is accepted only if the catalogue still lists it.
-        colors: doc.colors,
         sizes: doc.sizes,
-        ...(line.color && doc.colors.includes(line.color)
-          ? { color: line.color }
-          : {}),
         ...(line.size && doc.sizes.includes(line.size) ? { size: line.size } : {}),
         quantity,
         unitPrice: priced.unitPrice,
