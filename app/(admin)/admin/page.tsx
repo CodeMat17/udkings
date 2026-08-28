@@ -34,6 +34,9 @@ export default async function AdminPage() {
           <Button size="sm" render={<Link href="/admin/products" />}>
             Products
           </Button>
+          <Button size="sm" variant="outline" render={<Link href="/admin/categories" />}>
+            Sections
+          </Button>
           <form action={signOut}>
             <Button type="submit" variant="outline" size="sm">
               Sign out

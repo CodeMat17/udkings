@@ -80,7 +80,6 @@ export default async function CategoryPage(props: PageProps<"/category/[slug]">)
           <h1 className="display mt-4 text-[length:var(--text-display-l)]">
             {category.name}
           </h1>
-          <p className="mt-4 max-w-[52ch] text-white/85">{category.description}</p>
         </div>
       </section>
 

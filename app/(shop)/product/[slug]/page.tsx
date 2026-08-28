@@ -183,13 +183,9 @@ export default async function ProductPage(props: PageProps<"/product/[slug]">) {
           <div className="rounded-md border border-border bg-card p-5">
             <h3 className="font-extrabold">Delivery</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              The delivery page lists what each zone usually costs. The shop
-              sets the fee for your order and confirms it on WhatsApp before you
-              pay.
+              We deliver nationwide. The charge is agreed with you on WhatsApp
+              once your order is submitted, and confirmed before you pay.
             </p>
-            <Link href="/delivery" className="mt-3 inline-block font-bold hover:underline">
-              See delivery zones and fees
-            </Link>
           </div>
         </div>
       </Reveal>

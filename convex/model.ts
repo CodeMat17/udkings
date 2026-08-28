@@ -30,7 +30,6 @@ export type PublicProduct = {
 export type PublicCategory = {
   name: string;
   slug: string;
-  description: string;
   heroImage: string;
   orderIndex: number;
   seoTitle: string;
@@ -64,7 +63,6 @@ export function toCategory(doc: Doc<"categories">): PublicCategory {
   return {
     name: doc.name,
     slug: doc.slug,
-    description: doc.description,
     heroImage: doc.heroImage,
     orderIndex: doc.orderIndex,
     seoTitle: doc.seoTitle,

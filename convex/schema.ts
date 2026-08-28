@@ -36,8 +36,22 @@ export default defineSchema({
   categories: defineTable({
     name: v.string(),
     slug: v.string(),
-    description: v.string(),
+    /**
+     * Deprecated. The rails are named, not described: a shopkeeper should not
+     * have to write a paragraph to add "Jackets" to the shop, and the card
+     * carries the piece count instead. Optional so rows written before the
+     * admin existed still validate; `migrations:dropCategoryDescription`
+     * strips them, after which this line can go.
+     */
+    description: v.optional(v.string()),
     heroImage: v.string(),
+    /**
+     * Present when the photograph was uploaded through the admin, absent when
+     * it is a seeded file under `public/catalogue/`. Exactly as on a product:
+     * `heroImage` is the URL either way, and this is what lets a replaced or
+     * deleted rail take its blob with it instead of orphaning it in storage.
+     */
+    heroImageStorageId: v.optional(v.id("_storage")),
     orderIndex: v.number(),
     seoTitle: v.string(),
     seoDescription: v.string(),

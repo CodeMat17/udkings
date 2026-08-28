@@ -77,3 +77,40 @@ export const dropColoursAndCare = internalMutation({
     return { products, orders };
   },
 });
+
+/**
+ * Strips `description` from every category.
+ *
+ *   npx convex run migrations:dropCategoryDescription
+ *
+ * A rail is a photograph and a name; the card carries a counted piece count
+ * where the paragraph used to be. Nothing reads the field any more, so this is
+ * only tidying the rows.
+ *
+ * Same three steps as `dropColoursAndCare`, and the first one is already done:
+ * `convex/schema.ts` declares `description` as `v.optional(v.string())`, so a
+ * push lands with the old rows intact. Run the command above, then delete that
+ * line from the schema and push again.
+ *
+ * Running it twice is harmless: the second pass finds nothing to strip.
+ */
+export const dropCategoryDescription = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    let categories = 0;
+    for (const doc of await ctx.db.query("categories").collect()) {
+      const rest = { ...doc } as Record<string, unknown>;
+      const _id = doc._id;
+      delete rest._id;
+      delete rest._creationTime;
+
+      if (!("description" in rest)) continue;
+      delete rest.description;
+
+      // `replace` rather than `patch`: patching cannot remove a field.
+      await ctx.db.replace(_id, rest as never);
+      categories++;
+    }
+    return { categories };
+  },
+});

@@ -6,7 +6,6 @@ import { BUSINESS, waLink } from "@/lib/business";
 import { getCategories } from "@/lib/catalog";
 
 const HELP = [
-  { href: "/delivery", label: "Delivery information" },
   { href: "/track", label: "Track your order" },
   { href: "/faq", label: "Frequently asked questions" },
   { href: "/contact", label: "Contact the shop" },

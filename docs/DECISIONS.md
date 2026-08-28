@@ -259,3 +259,33 @@ worded as what that zone usually costs. The customer is told this before the
 handoff, not after: on the checkout summary, on the order screen directly above
 the WhatsApp button, and in the message itself, which asks the shop to confirm
 the fee and labels the figure "Total for the goods".
+
+## Categories are editable, and a category is a photo and a name
+
+Category hero images were the last customer-facing image with no admin screen:
+`heroImage` was a hardcoded `/catalogue/hero-*.jpg` path from
+`lib/catalog-seed.ts`, so changing a rail's photograph meant a code edit and a
+deploy. `/admin/categories` now adds, renames, re-photographs and removes them,
+reusing the product pipeline unchanged — `ImageField` compresses in the admin's
+browser, uploads straight to Convex storage, and hands a storage id to the
+mutation. `heroImageStorageId` on the row is what lets a replaced hero take its
+old blob with it; a seeded rail has no storage id, and its file under
+`public/catalogue/` is part of the repository and is not ours to delete.
+
+**A rail has no description.** It had one, and nobody could say what it was for:
+it appeared once on the card and once under the hero, it went stale the moment a
+season turned, and it asked a shopkeeper to write a paragraph in order to add
+the word "Jackets" to the shop. The card now carries the piece count instead,
+which is counted rather than typed and cannot go stale. The search listing is
+derived from the name the way a product's is, and hand-written copy on the
+seeded eight survives every edit that does not rename the rail.
+
+**The slug never changes.** Shoppers, Google and every WhatsApp link ever sent
+hold `/category/<slug>`; a rename is not a reason to 404 them. `updateCategory`
+does not take a slug to write, only one to find the row by.
+
+**A rail holding pieces cannot be removed.** A product carries a `categorySlug`,
+not a reference, so deleting the rail underneath one fails nowhere — it quietly
+strands the piece: off `/categories`, off every rail, reachable only by its own
+address. Archived pieces count too, since an archive is restorable. Convex
+refuses with the number to move, and the admin moves them.

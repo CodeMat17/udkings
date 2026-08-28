@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server.js";
 import type { Id } from "./_generated/dataModel.js";
 import { requireAdmin } from "./auth.js";
-import { toProduct } from "./model.js";
+import { toCategory, toProduct } from "./model.js";
 
 /**
  * Every write to the catalogue. All of them call `requireAdmin` as their first
@@ -247,12 +247,16 @@ export const deleteUpload = mutation({
   args: { ...secretArg, storageId: v.id("_storage") },
   handler: async (ctx, { secret, storageId }) => {
     requireAdmin(secret);
-    const used = await ctx.db
+    const onProduct = await ctx.db
       .query("products")
       .filter((q) => q.eq(q.field("imageStorageId"), storageId))
       .first();
-    // Never delete a blob a product is actually using.
-    if (used) return;
+    const onCategory = await ctx.db
+      .query("categories")
+      .filter((q) => q.eq(q.field("heroImageStorageId"), storageId))
+      .first();
+    // Never delete a blob a product or a rail is actually using.
+    if (onProduct || onCategory) return;
     await ctx.storage.delete(storageId);
   },
 });
@@ -271,5 +275,136 @@ export const setArchived = mutation({
       .unique();
     if (!doc) throw new Error(`No product ${productId}.`);
     await ctx.db.patch(doc._id, { isArchived });
+  },
+});
+
+/* ------------------------------------------------------------------ *
+ * Categories
+ * ------------------------------------------------------------------ */
+
+/**
+ * A rail is a photograph and a name. That is the whole editable surface.
+ *
+ * There is deliberately no description: the shopkeeper adding "Jackets" to the
+ * shop should type the word "Jackets" and choose a photo, and the card works
+ * out the rest — the piece count is counted, the SEO listing is derived, the
+ * web address is derived. Every field that was a paragraph to write was a
+ * field that stayed empty or stayed wrong.
+ */
+const categoryFields = {
+  name: v.string(),
+  slug: v.string(),
+  seoTitle: v.string(),
+  seoDescription: v.string(),
+};
+
+export const listAllCategories = query({
+  args: secretArg,
+  handler: async (ctx, { secret }) => {
+    requireAdmin(secret);
+    const docs = await ctx.db.query("categories").collect();
+    return docs.map(toCategory).sort((a, b) => a.orderIndex - b.orderIndex);
+  },
+});
+
+export const createCategory = mutation({
+  args: { ...secretArg, ...categoryFields, imageStorageId: v.id("_storage") },
+  handler: async (ctx, { secret, imageStorageId, ...fields }) => {
+    requireAdmin(secret);
+
+    const clash = await ctx.db
+      .query("categories")
+      .withIndex("by_slug", (q) => q.eq("slug", fields.slug))
+      .unique();
+    if (clash) throw new Error(`There is already a section called "${clash.name}".`);
+
+    // New rails go on the end. Reordering is not something the shop has asked
+    // for, and an admin who wants a different order can be given one later
+    // without any of this changing.
+    const all = await ctx.db.query("categories").collect();
+    const last = all.reduce((n, doc) => Math.max(n, doc.orderIndex), 0);
+
+    return ctx.db.insert("categories", {
+      ...fields,
+      heroImage: await resolveImage(ctx, imageStorageId),
+      heroImageStorageId: imageStorageId,
+      orderIndex: last + 1,
+    });
+  },
+});
+
+/**
+ * Renames and re-photographs a rail. The slug is not among the arguments on
+ * purpose: shoppers, Google and every printed WhatsApp link hold
+ * `/category/<slug>`, and a rename is not a reason to break them.
+ */
+export const updateCategory = mutation({
+  args: {
+    ...secretArg,
+    slug: v.string(),
+    name: v.string(),
+    seoTitle: v.string(),
+    seoDescription: v.string(),
+    /** Absent means "keep the photograph that is already there". */
+    imageStorageId: v.optional(v.id("_storage")),
+  },
+  handler: async (ctx, { secret, slug, imageStorageId, ...fields }) => {
+    requireAdmin(secret);
+    const doc = await ctx.db
+      .query("categories")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+    if (!doc) throw new Error(`No section "${slug}".`);
+
+    if (!imageStorageId || imageStorageId === doc.heroImageStorageId) {
+      await ctx.db.patch(doc._id, fields);
+      return;
+    }
+
+    await ctx.db.patch(doc._id, {
+      ...fields,
+      heroImage: await resolveImage(ctx, imageStorageId),
+      heroImageStorageId: imageStorageId,
+    });
+    // The row now points at the new blob, so the old one is unreachable.
+    // Seeded rails have no storage id — their file under `public/catalogue/`
+    // is part of the repository and is not ours to delete.
+    if (doc.heroImageStorageId) await ctx.storage.delete(doc.heroImageStorageId);
+  },
+});
+
+/**
+ * Removes a rail, photograph included.
+ *
+ * Refused while any piece still sits in it. A product carries a
+ * `categorySlug`, not a reference, so deleting the rail underneath one would
+ * not fail anywhere — it would quietly strand the piece: absent from
+ * `/categories`, absent from every rail, reachable only by its own address.
+ * Better to say so and let the admin move them.
+ */
+export const deleteCategory = mutation({
+  args: { ...secretArg, slug: v.string() },
+  handler: async (ctx, { secret, slug }) => {
+    requireAdmin(secret);
+    const doc = await ctx.db
+      .query("categories")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+    if (!doc) throw new Error(`No section "${slug}".`);
+
+    // Archived pieces count too: an archive is restorable, and it would come
+    // back into a section that no longer exists.
+    const held = await ctx.db
+      .query("products")
+      .withIndex("by_category", (q) => q.eq("categorySlug", slug))
+      .collect();
+    if (held.length > 0) {
+      throw new Error(
+        `${doc.name} still has ${held.length} ${held.length === 1 ? "piece" : "pieces"} in it. Move them to another section first, then remove it.`,
+      );
+    }
+
+    await ctx.db.delete(doc._id);
+    if (doc.heroImageStorageId) await ctx.storage.delete(doc.heroImageStorageId);
   },
 });

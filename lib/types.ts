@@ -16,7 +16,6 @@ export type ProductImage = {
 export type Category = {
   name: string;
   slug: string;
-  description: string;
   heroImage: string;
   orderIndex: number;
   seoTitle: string;

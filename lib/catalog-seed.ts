@@ -12,8 +12,7 @@ export const CATEGORY_SEEDS: Category[] = [
   {
     name: "Jeans",
     slug: "jeans",
-    description:
-      "High-waist, straight-leg, mom-fit and boyfriend cuts in raw and washed denim. Sizes 8 to 20, retail and wholesale.",
+
     heroImage: "/catalogue/hero-jeans.jpg",
     orderIndex: 1,
     seoTitle: "Ladies Jeans in Lagos — Retail & Wholesale",
@@ -23,8 +22,7 @@ export const CATEGORY_SEEDS: Category[] = [
   {
     name: "Tops",
     slug: "tops",
-    description:
-      "Ribbed bodysuits, crop tops, corset tops and off-shoulder blouses that carry a whole outfit on their own.",
+
     heroImage: "/catalogue/hero-tops.jpg",
     orderIndex: 2,
     seoTitle: "Ladies Tops in Lagos — Retail & Wholesale",
@@ -34,8 +32,7 @@ export const CATEGORY_SEEDS: Category[] = [
   {
     name: "Gowns",
     slug: "gowns",
-    description:
-      "Occasion gowns, church gowns and everyday maxi dresses cut to move in Lagos heat.",
+
     heroImage: "/catalogue/hero-gowns.jpg",
     orderIndex: 3,
     seoTitle: "Gowns in Lagos — Occasion & Everyday",
@@ -45,8 +42,7 @@ export const CATEGORY_SEEDS: Category[] = [
   {
     name: "Skirts",
     slug: "skirts",
-    description:
-      "Pencil, pleated, denim and satin midi skirts for work and for owambe.",
+
     heroImage: "/catalogue/hero-skirts.jpg",
     orderIndex: 4,
     seoTitle: "Ladies Skirts in Lagos — Retail & Wholesale",
@@ -56,8 +52,7 @@ export const CATEGORY_SEEDS: Category[] = [
   {
     name: "Bump Shorts",
     slug: "bump-shorts",
-    description:
-      "Bump shorts and biker shorts in thick, opaque fabric that stays put.",
+
     heroImage: "/catalogue/hero-bump-shorts.jpg",
     orderIndex: 5,
     seoTitle: "Bump Shorts in Lagos — Wholesale & Retail",
@@ -67,7 +62,7 @@ export const CATEGORY_SEEDS: Category[] = [
   {
     name: "Jackets",
     slug: "jackets",
-    description: "Denim jackets, blazers and bomber cuts that finish a look at night.",
+
     heroImage: "/catalogue/hero-jackets.jpg",
     orderIndex: 6,
     seoTitle: "Ladies Jackets in Lagos — Denim & Blazers",
@@ -77,7 +72,7 @@ export const CATEGORY_SEEDS: Category[] = [
   {
     name: "Trousers",
     slug: "trousers",
-    description: "Wide-leg, palazzo and tailored trousers in fabric that holds a line.",
+
     heroImage: "/catalogue/hero-trousers.jpg",
     orderIndex: 7,
     seoTitle: "Ladies Trousers in Lagos — Wide-Leg & Tailored",
@@ -87,7 +82,7 @@ export const CATEGORY_SEEDS: Category[] = [
   {
     name: "Two-Piece Sets",
     slug: "two-piece-sets",
-    description: "Matching sets — one decision, a whole outfit.",
+
     heroImage: "/catalogue/hero-two-piece-sets.jpg",
     orderIndex: 8,
     seoTitle: "Two-Piece Sets in Lagos — Matching Outfits",

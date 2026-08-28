@@ -38,10 +38,8 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const selectedZone = zoneFor(zone);
-  // The zone fee is a published guide, never the price of this delivery: only
-  // the shop sets that, once it has seen the address and the load. So the total
-  // here is the goods, and delivery is added when the shop confirms it.
-  const feeGuide = fulfilment === "pickup" ? null : (selectedZone?.fee ?? null);
+  // No delivery fee is ever quoted here: the shop agrees it with the customer
+  // on WhatsApp once the order is submitted. The total is the goods only.
   const total = subtotal;
 
   if (ready && validated && priced.length === 0) {
@@ -303,9 +301,7 @@ export default function CheckoutPage() {
                         </SelectContent>
                       </Select>
                       <p className="mt-1.5 text-sm text-muted-foreground">
-                        {feeGuide === null
-                          ? `Usually ${selectedZone?.etaDays}. The shop sets the fee on WhatsApp.`
-                          : `Usually around ${formatNaira(feeGuide)} · ${selectedZone?.etaDays}. A guide only.`}
+                        {`Usually ${selectedZone?.etaDays}. The delivery charge is agreed on WhatsApp.`}
                       </p>
                     </div>
                     <div>
@@ -368,8 +364,7 @@ export default function CheckoutPage() {
                   "Pickup at the shop"
                 ) : (
                   <span className="text-sm text-muted-foreground">
-                    Set by the shop
-                    {feeGuide !== null ? ` · around ${formatNaira(feeGuide)}` : ""}
+                    Agreed on WhatsApp
                   </span>
                 )}
               </dd>
@@ -384,9 +379,9 @@ export default function CheckoutPage() {
 
           {fulfilment === "delivery" ? (
             <p className="mt-4 rounded-md border border-border bg-secondary p-3 text-sm font-semibold">
-              The delivery fee is set by the shop once we have seen your address,
-              and we tell you on WhatsApp before you pay anything. The total
-              above is the goods only.
+              The delivery charge is agreed with you on WhatsApp once your order
+              is submitted, before you pay anything. The total above is the
+              goods only.
             </p>
           ) : null}
 

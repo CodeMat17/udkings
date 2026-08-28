@@ -126,7 +126,7 @@ export default async function HomePage() {
         products={bestSellers}
       />
 
-      <Reveal as="section" className="shell mt-16">
+      {/* <Reveal as="section" className="shell mt-16">
         <div className="rounded-lg border border-border bg-card p-8 sm:p-12">
           <p className="label text-wholesale">Wholesale</p>
           <h2 className="display mt-3 max-w-[18ch] text-[length:var(--text-display-m)]">
@@ -146,14 +146,14 @@ export default async function HomePage() {
             <ArrowRightIcon className="size-4" aria-hidden="true" />
           </Link>
         </div>
-      </Reveal>
+      </Reveal> */}
 
-      <Rail
+      {/* <Rail
         title="Wholesale lines"
         eyebrow="For traders and boutiques"
         href="/shop?wholesale=1"
         products={wholesale}
-      />
+      /> */}
 
       <Reveal as="section" className="shell mt-20">
         <p className="label text-accent-ink">Why UDKING&rsquo;S</p>
@@ -206,17 +206,10 @@ export default async function HomePage() {
             <TruckIcon className="size-6 text-accent-ink" aria-hidden="true" />
             <h2 className="mt-3 text-2xl font-extrabold">Delivery nationwide</h2>
             <p className="mt-3 text-muted-foreground">
-              Lagos, the South East, the North — the delivery page lists what
-              each zone usually costs so you can budget before you order. The
-              shop confirms the exact fee for your parcel on WhatsApp.
+              Lagos, the South East, the North — we send parcels anywhere in
+              Nigeria. The delivery charge is agreed with you on WhatsApp once
+              your order is submitted, so you know the fee before you pay.
             </p>
-            <Link
-              href="/delivery"
-              className="mt-5 inline-flex h-11 items-center gap-1.5 font-bold hover:underline"
-            >
-              See delivery zones
-              <ArrowRightIcon className="size-4" aria-hidden="true" />
-            </Link>
           </div>
         </div>
       </Reveal>

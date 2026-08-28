@@ -380,3 +380,118 @@ export async function deleteProduct(
   updateTag(CATALOG_TAG);
   return { ok: true };
 }
+
+/* ------------------------------------------------------------------ *
+ * Categories
+ * ------------------------------------------------------------------ */
+
+/**
+ * The shop's rails, as the admin sees them.
+ *
+ * Read through the secret-guarded query rather than the cached storefront
+ * catalogue so a rail added a second ago is on the page, not on the next
+ * revalidation.
+ */
+export async function listCategories() {
+  await requireSession();
+  return fetchQuery(api.admin.listAllCategories, { secret: adminSecret() });
+}
+
+export type SaveCategoryResult =
+  | { ok: false; error: string }
+  | { ok: true; name: string; created: boolean };
+
+/**
+ * The search listing for a rail, written from its name.
+ *
+ * The seeded eight carry hand-written copy that is better than anything
+ * generated, so an edit that leaves the name alone leaves that copy alone. A
+ * rename regenerates it: a section renamed from "Gowns" to "Dresses" whose
+ * Google listing still says "Gowns" is worse than a plain sentence.
+ */
+function categorySeo(name: string) {
+  return {
+    seoTitle: `${name} in Lagos — Retail & Wholesale | UDKING'S Collections`,
+    seoDescription: `${name} at UDKING'S Collections, Lagos Island. Retail and wholesale prices, pickup at the shop or delivery nationwide. Order on WhatsApp.`,
+  };
+}
+
+/**
+ * One action for adding a rail and for editing one, the way `saveProduct` is
+ * one action for both. A new rail needs a photograph; an existing one keeps
+ * the photograph and the web address it already has.
+ */
+export async function saveCategory(
+  _previous: SaveCategoryResult | null,
+  form: FormData,
+): Promise<SaveCategoryResult> {
+  await requireSession();
+
+  const currentSlug = text(form, "currentSlug");
+  const uploaded = text(form, "imageStorageId");
+
+  const name = text(form, "name");
+  if (!name) {
+    if (uploaded) await discardUpload(uploaded);
+    return { ok: false, error: "A section needs a name." };
+  }
+
+  const slug = currentSlug || slugify(name);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    if (uploaded) await discardUpload(uploaded);
+    return { ok: false, error: "A name needs at least one letter or number in it." };
+  }
+
+  const previousName = text(form, "currentName");
+  const seo =
+    currentSlug && previousName === name
+      ? { seoTitle: text(form, "currentSeoTitle"), seoDescription: text(form, "currentSeoDescription") }
+      : categorySeo(name);
+
+  try {
+    if (currentSlug) {
+      await fetchMutation(api.admin.updateCategory, {
+        secret: adminSecret(),
+        slug,
+        name,
+        ...seo,
+        ...(uploaded ? { imageStorageId: uploaded as Id<"_storage"> } : {}),
+      });
+    } else {
+      if (!uploaded) return { ok: false, error: "Choose a photograph for this section." };
+      await fetchMutation(api.admin.createCategory, {
+        secret: adminSecret(),
+        name,
+        slug,
+        ...seo,
+        imageStorageId: uploaded as Id<"_storage">,
+      });
+    }
+  } catch (error) {
+    if (uploaded) await discardUpload(uploaded);
+    return { ok: false, error: message(error) };
+  }
+
+  updateTag(CATALOG_TAG);
+  return { ok: true, name, created: !currentSlug };
+}
+
+/**
+ * Removes a rail and its photograph.
+ *
+ * Convex refuses while pieces are still in it, and that sentence is the whole
+ * point of the refusal, so it comes back as a value to be toasted rather than
+ * thrown at the page.
+ */
+export async function deleteCategory(
+  slug: string,
+): Promise<{ ok: boolean; error?: string }> {
+  await requireSession();
+  try {
+    await fetchMutation(api.admin.deleteCategory, { secret: adminSecret(), slug });
+  } catch (error) {
+    return { ok: false, error: message(error) };
+  }
+  updateTag(CATALOG_TAG);
+  return { ok: true };
+}

@@ -46,11 +46,8 @@ export default async function CategoriesPage() {
                   <span className="block text-lg font-extrabold">
                     {category.name}
                   </span>
-                  <span className="mt-1 block text-sm text-muted-foreground">
-                    {category.description}
-                  </span>
-                  <span className="label mt-3 block text-accent-ink">
-                    {countIn(category.slug)} styles
+                  <span className="label mt-2 block text-accent-ink">
+                    {countIn(category.slug)} {countIn(category.slug) === 1 ? "style" : "styles"}
                   </span>
                 </span>
               </Link>

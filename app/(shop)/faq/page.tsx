@@ -22,7 +22,7 @@ const FAQS = [
   },
   {
     q: "How much is delivery?",
-    a: "The delivery page lists what each zone usually costs, as a guide. The fee for your own order is set by the shop, not by the website: we look at your address and what you have ordered, then confirm the fee with you on WhatsApp before dispatch and before you pay. We never quote a number we cannot stand behind.",
+    a: "Delivery is not priced on the website. When you submit your order we look at your address and what you have ordered, then agree the fee with you on WhatsApp before dispatch and before you pay. We never quote a number we cannot stand behind.",
   },
   {
     q: "Can I collect instead?",
