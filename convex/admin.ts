@@ -1,5 +1,10 @@
 import { v } from "convex/values";
-import { mutation, query, type MutationCtx } from "./_generated/server.js";
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+} from "./_generated/server.js";
 import type { Id } from "./_generated/dataModel.js";
 import { requireAdmin } from "./auth.js";
 import { toCategory, toProduct } from "./model.js";
@@ -124,22 +129,36 @@ async function resolveImage(
   ctx: MutationCtx,
   storageId: Id<"_storage">,
 ): Promise<string> {
+  // Every message here ends with the same instruction. These three rejections
+  // all delete the blob on the way out, so the photograph in the form is gone
+  // even though it is still on screen — and "choose the photograph again" is
+  // the only thing that gets the admin out of it.
   const meta = await ctx.db.system.get(storageId);
-  if (!meta) throw new Error("That upload is no longer in storage.");
+  if (!meta) {
+    throw new Error("That photograph is no longer available. Choose it again.");
+  }
 
   if (meta.size > MAX_IMAGE_BYTES) {
     await ctx.storage.delete(storageId);
     throw new Error(
-      `That photograph is ${Math.round(meta.size / 1024)} KB. The limit is ${MAX_IMAGE_BYTES / 1024} KB.`,
+      `That photograph is ${Math.round(meta.size / 1024)} KB and the limit is ${MAX_IMAGE_BYTES / 1024} KB. Choose a different photograph.`,
     );
   }
-  if (meta.contentType && !ALLOWED_IMAGE_TYPES.includes(meta.contentType)) {
+  // Absent counts as invalid. The browser sets `Content-Type` from `blob.type`
+  // and `toBlob` always fills that in, so nothing this shop uploads arrives
+  // without one — but the upload URL takes whatever is POSTed to it, and a
+  // permissive branch here would be the way past the only type check there is.
+  if (!meta.contentType || !ALLOWED_IMAGE_TYPES.includes(meta.contentType)) {
     await ctx.storage.delete(storageId);
-    throw new Error(`${meta.contentType} is not an image this shop accepts.`);
+    throw new Error(
+      `${meta.contentType ?? "That file"} is not an image this shop accepts. Choose a photograph instead.`,
+    );
   }
 
   const url = await ctx.storage.getUrl(storageId);
-  if (!url) throw new Error("That upload is no longer in storage.");
+  if (!url) {
+    throw new Error("That photograph is no longer available. Choose it again.");
+  }
   return url;
 }
 
@@ -239,9 +258,13 @@ export const deleteProduct = mutation({
 });
 
 /**
- * Cleanup for an upload whose product never got saved — a slug clash, a
- * validation failure, an abandoned form. Without this every failed save would
- * strand a file in storage that nothing points at.
+ * Cleanup for an upload the browser knows has become unreachable: the admin
+ * chose a second photograph before saving, so the first one can go.
+ *
+ * Deliberately *not* called when a save fails — the form is still on screen and
+ * the admin is about to press Save again; see `saveProduct`. Those blobs, and
+ * the ones left by an abandoned form, are collected by
+ * `sweepOrphanedUploads` instead.
  */
 export const deleteUpload = mutation({
   args: { ...secretArg, storageId: v.id("_storage") },
@@ -406,5 +429,64 @@ export const deleteCategory = mutation({
 
     await ctx.db.delete(doc._id);
     if (doc.heroImageStorageId) await ctx.storage.delete(doc.heroImageStorageId);
+  },
+});
+
+/* ------------------------------------------------------------------ *
+ * Storage housekeeping
+ * ------------------------------------------------------------------ */
+
+/**
+ * How long an unreferenced blob is left alone before the sweeper takes it.
+ *
+ * This is the whole safety of the thing. An admin who has uploaded a
+ * photograph and not yet pressed Save owns a blob that nothing points at, and
+ * it must not be collected out from under them mid-form. A day is far longer
+ * than anyone spends filling in one product, and short enough that abandoned
+ * uploads do not accumulate.
+ */
+const ORPHAN_GRACE_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Deletes uploaded photographs that no product and no rail points at.
+ *
+ * `deleteUpload` covers the paths the browser knows about — a replaced
+ * photograph, a save that failed validation. It cannot cover the one that
+ * happens most: the admin uploads, then closes the tab. No client-side hook
+ * fixes that reliably (a phone browser killed in the background fires nothing
+ * at all), so the collection has to happen server-side, on a schedule.
+ *
+ * Only blobs older than `ORPHAN_GRACE_MS` are considered, and each is checked
+ * against both tables immediately before it goes. Seeded photographs under
+ * `public/catalogue/` are files on disk, not storage entries, so they are not
+ * in scope here at all.
+ *
+ * `internalMutation`: reachable from the cron and the CLI, never from a
+ * browser, which is why it takes no secret.
+ */
+export const sweepOrphanedUploads = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cutoff = Date.now() - ORPHAN_GRACE_MS;
+
+    // The referenced ids, gathered once. A shop of this size has hundreds of
+    // rows, not millions, so this is cheaper than a filtered scan per blob.
+    const inUse = new Set<string>();
+    for (const product of await ctx.db.query("products").collect()) {
+      if (product.imageStorageId) inUse.add(product.imageStorageId);
+    }
+    for (const category of await ctx.db.query("categories").collect()) {
+      if (category.heroImageStorageId) inUse.add(category.heroImageStorageId);
+    }
+
+    let deleted = 0;
+    for (const blob of await ctx.db.system.query("_storage").collect()) {
+      if (blob._creationTime > cutoff) continue;
+      if (inUse.has(blob._id)) continue;
+      await ctx.storage.delete(blob._id);
+      deleted += 1;
+    }
+
+    return { deleted };
   },
 });

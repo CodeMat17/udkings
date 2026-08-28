@@ -25,8 +25,8 @@ export const MAX_BYTES = 500 * 1024;
 /** Long edge. Product photography renders at most 800 CSS px, so this covers 2×. */
 export const MAX_EDGE = 1600;
 
-const QUALITY_STEPS = [0.86, 0.78, 0.7, 0.62, 0.55, 0.45, 0.35];
-const EDGE_STEPS = [MAX_EDGE, 1280, 1024, 800, 640];
+const QUALITY_STEPS = [0.86, 0.78, 0.7, 0.62, 0.55, 0.45, 0.35, 0.25];
+const EDGE_STEPS = [MAX_EDGE, 1280, 1024, 800, 640, 512, 400];
 
 /**
  * What the file picker offers. `image/*` is the one that matters: it is what
@@ -107,11 +107,65 @@ async function pickOutputType(canvas: HTMLCanvasElement): Promise<string> {
 }
 
 /**
+ * The pixel dimensions of the file, without keeping a decoded copy around.
+ *
+ * `naturalWidth` is readable as soon as the header has been parsed, so this is
+ * the cheapest way to learn the shape of a photograph before committing to a
+ * full-resolution decode of it.
+ */
+async function readSize(file: File): Promise<{ width: number; height: number } | null> {
+  const url = URL.createObjectURL(file);
+  const element = new Image();
+  try {
+    element.decoding = "async";
+    await new Promise<void>((resolve, reject) => {
+      element.onload = () => resolve();
+      element.onerror = () => reject(new Error("probe failed"));
+      element.src = url;
+    });
+    return element.naturalWidth && element.naturalHeight
+      ? { width: element.naturalWidth, height: element.naturalHeight }
+      : null;
+  } catch {
+    return null;
+  } finally {
+    // Drop the element's own raster before the real decode allocates.
+    element.src = "";
+    URL.revokeObjectURL(url);
+  }
+}
+
+/**
  * Decodes the file. `createImageBitmap` is fast and handles the common cases;
  * an `<img>` element handles what it will not, which on Safari includes HEIC
  * straight off the camera roll.
+ *
+ * A 50 MP photograph decoded at full size is ~200 MB of RGBA, which on a cheap
+ * Android phone is not a caught error — it is the tab disappearing. So when the
+ * file is larger than anything we would keep, the decoder is asked to downsample
+ * as it decodes: `resizeWidth` *or* `resizeHeight` alone preserves the aspect
+ * ratio, and picking whichever matches the long edge caps the allocation at the
+ * size `drawScaled` was going to reduce it to anyway. Only one may be given, so
+ * the orientation has to be known first — hence `readSize`.
  */
 async function decode(file: File): Promise<ImageBitmap> {
+  const size = await readSize(file);
+  const options: ImageBitmapOptions | undefined =
+    size && Math.max(size.width, size.height) > MAX_EDGE
+      ? size.width >= size.height
+        ? { resizeWidth: MAX_EDGE, resizeQuality: "high" }
+        : { resizeHeight: MAX_EDGE, resizeQuality: "high" }
+      : undefined;
+
+  if (options) {
+    try {
+      return await createImageBitmap(file, options);
+    } catch {
+      // An engine that will not take the options is not a reason to refuse the
+      // photograph — try the plain decode below.
+    }
+  }
+
   try {
     return await createImageBitmap(file);
   } catch {
@@ -127,8 +181,22 @@ async function decode(file: File): Promise<ImageBitmap> {
       element.onerror = () => reject(new Error("decode failed"));
       element.src = url;
     });
+    try {
+      if (options) return await createImageBitmap(element, options);
+    } catch {
+      // Same as above: fall through to the unresized decode.
+    }
     return await createImageBitmap(element);
   } catch {
+    // A phone converts HEIC to JPEG at the picker, so this is the Mac case:
+    // a .heic dragged out of the Photos folder, which Safari cannot open in a
+    // page. Naming the file type and the menu that fixes it beats telling a
+    // shopkeeper their photograph is unopenable when they can see it fine.
+    if (/\.hei[cf]$/i.test(file.name)) {
+      throw new Error(
+        "This browser cannot open HEIC photos. In the Photos app choose File → Export → Export Photo, pick JPEG, and choose that file instead.",
+      );
+    }
     throw new Error(
       "This browser could not open that photograph. Open it in your Photos app, save or share it as a JPEG, and choose that instead.",
     );

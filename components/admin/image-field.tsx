@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { createUploadUrl, discardUpload } from "@/app/(admin)/actions";
-import { ACCEPTED_TYPES, formatBytes, prepareImage } from "@/lib/image";
+import { ACCEPTED_TYPES, MAX_BYTES, formatBytes, prepareImage } from "@/lib/image";
 
 /**
  * Choose a photograph, see what it will become, upload it.
@@ -79,6 +79,20 @@ export function ImageField({
       prepared = await prepareImage(file);
     } catch (error) {
       fail(readable(error));
+      return;
+    }
+
+    // `prepareImage` keeps the smallest thing it made even when that is still
+    // over the ceiling, so the ceiling has to be read here. Otherwise the only
+    // place it is enforced is `resolveImage` on save — which rejects the piece
+    // after the whole form has been filled in, and deletes the blob on the way
+    // out, so pressing Save again fails differently. Say it now, while the file
+    // picker is the obvious next thing to touch.
+    if (prepared.bytes > MAX_BYTES) {
+      URL.revokeObjectURL(prepared.previewUrl);
+      fail(
+        `Even shrunk right down, that photograph is ${formatBytes(prepared.bytes)} and the limit is ${formatBytes(MAX_BYTES)}. Crop out the background, or take it again in better light — a busy, grainy photo is the kind that will not shrink.`,
+      );
       return;
     }
 
@@ -180,6 +194,7 @@ export function ImageField({
             variant="outline"
             size="sm"
             disabled={busy}
+            data-field="photograph"
             onClick={() => inputRef.current?.click()}
           >
             {busy ? "Working…" : shown ? "Change photo" : "Choose photo"}

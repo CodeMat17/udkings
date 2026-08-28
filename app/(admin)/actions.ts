@@ -45,6 +45,31 @@ function message(error: unknown): string {
   return (match?.[1] ?? raw).trim() || "That could not be saved.";
 }
 
+/**
+ * A validation error that knows which control the admin has to go and fix.
+ *
+ * The sentence on its own leaves them hunting: a long form, a red line at the
+ * bottom, and nothing saying which of fifteen boxes it is about. `field` is the
+ * id of the control on the form, so the browser can put the cursor in it.
+ */
+class FieldError extends Error {
+  constructor(
+    readonly field: string,
+    text: string,
+  ) {
+    super(text);
+  }
+}
+
+/** The failure shape both save actions return, carrying the field when known. */
+function failure(error: unknown): { ok: false; error: string; field?: string } {
+  return {
+    ok: false,
+    error: message(error),
+    ...(error instanceof FieldError ? { field: error.field } : {}),
+  };
+}
+
 /** "Stone Wash Straight Jean" → "stone-wash-straight-jean". */
 function slugify(value: string): string {
   return value
@@ -186,7 +211,7 @@ export async function discardUpload(storageId: string): Promise<void> {
  * The client navigates once it has shown the toast.
  */
 export type SaveProductResult =
-  | { ok: false; error: string }
+  | { ok: false; error: string; field?: string }
   | { ok: true; name: string; created: boolean };
 
 const text = (form: FormData, key: string) => String(form.get(key) ?? "").trim();
@@ -201,7 +226,7 @@ const list = (form: FormData, key: string) =>
 function naira(form: FormData, key: string, label: string): number {
   const value = Number(text(form, key));
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${label} must be a whole number of naira.`);
+    throw new FieldError(key, `${label} must be a whole number of naira.`);
   }
   return value;
 }
@@ -222,13 +247,20 @@ function priceTiers(form: FormData, retailPrice: number) {
       const minQty = Number(row.minQty);
       const unitPrice = Number(row.unitPrice);
       if (!Number.isInteger(minQty) || minQty < 2) {
-        throw new Error(`Bulk price ${index + 1}: the quantity must be a whole number, 2 or more.`);
+        throw new FieldError(
+          `tierMinQty-${index}`,
+          `Bulk price ${index + 1}: the quantity must be a whole number, 2 or more.`,
+        );
       }
       if (!Number.isInteger(unitPrice) || unitPrice <= 0) {
-        throw new Error(`Bulk price ${index + 1}: fill in the price each, in whole naira.`);
+        throw new FieldError(
+          `tierUnitPrice-${index}`,
+          `Bulk price ${index + 1}: fill in the price each, in whole naira.`,
+        );
       }
       if (unitPrice >= retailPrice) {
-        throw new Error(
+        throw new FieldError(
+          `tierUnitPrice-${index}`,
           `Bulk price ${index + 1} is not cheaper than the normal price. A bulk price has to be a discount.`,
         );
       }
@@ -267,20 +299,24 @@ function priceTiers(form: FormData, retailPrice: number) {
  */
 function productArgs(form: FormData) {
   const name = text(form, "name");
-  if (!name) throw new Error("A piece needs a name.");
+  if (!name) throw new FieldError("name", "A piece needs a name.");
 
   const slug = text(form, "currentSlug") || slugify(name);
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-    throw new Error("A name needs at least one letter or number in it.");
+    throw new FieldError("name", "A name needs at least one letter or number in it.");
   }
 
   const categorySlug = text(form, "categorySlug");
-  if (!categorySlug) throw new Error("Choose which part of the shop this belongs in.");
+  if (!categorySlug) {
+    throw new FieldError("categorySlug", "Choose which part of the shop this belongs in.");
+  }
 
   const description = text(form, "description");
 
   const sizes = list(form, "sizes");
-  if (sizes.length === 0) throw new Error("Choose at least one size you have in stock.");
+  if (sizes.length === 0) {
+    throw new FieldError("sizes", "Choose at least one size you have in stock.");
+  }
 
   const retailPrice = naira(form, "retailPrice", "The price");
   const tiers = priceTiers(form, retailPrice);
@@ -314,8 +350,16 @@ function productArgs(form: FormData) {
 /**
  * One action for both new and existing pieces: the presence of `productId`
  * decides. On a create the photograph is required; on an edit an unchanged one
- * is left alone. Either way, a failed save takes the just-uploaded blob with
- * it rather than leaving it stranded in storage.
+ * is left alone.
+ *
+ * A failed save deliberately leaves the uploaded blob alone. It used to delete
+ * it, which was tidy and wrong: the form is still on screen, still showing the
+ * photograph, still holding its storage id — so the admin fixes the typo that
+ * caused the failure, presses Save again, and is told "that upload is no longer
+ * in storage" about a photograph they can see. There is no way out of that
+ * except re-choosing the file, and nothing on screen says so. Now the second
+ * Save simply works. `admin:sweepOrphanedUploads` collects the blob a day later
+ * if the admin gives up instead.
  */
 export async function saveProduct(
   _previous: SaveProductResult | null,
@@ -330,8 +374,7 @@ export async function saveProduct(
   try {
     args = productArgs(form);
   } catch (error) {
-    if (uploaded) await discardUpload(uploaded);
-    return { ok: false, error: message(error) };
+    return failure(error);
   }
 
   try {
@@ -343,7 +386,9 @@ export async function saveProduct(
         ...(uploaded ? { imageStorageId: uploaded as Id<"_storage"> } : {}),
       });
     } else {
-      if (!uploaded) return { ok: false, error: "Choose a photograph for this piece." };
+      if (!uploaded) {
+        return { ok: false, error: "Choose a photograph for this piece.", field: "photograph" };
+      }
       await fetchMutation(api.admin.createProduct, {
         secret: adminSecret(),
         ...args,
@@ -351,7 +396,6 @@ export async function saveProduct(
       });
     }
   } catch (error) {
-    if (uploaded) await discardUpload(uploaded);
     return { ok: false, error: message(error) };
   }
 
@@ -398,7 +442,7 @@ export async function listCategories() {
 }
 
 export type SaveCategoryResult =
-  | { ok: false; error: string }
+  | { ok: false; error: string; field?: string }
   | { ok: true; name: string; created: boolean };
 
 /**
@@ -432,14 +476,12 @@ export async function saveCategory(
 
   const name = text(form, "name");
   if (!name) {
-    if (uploaded) await discardUpload(uploaded);
-    return { ok: false, error: "A section needs a name." };
+    return { ok: false, error: "A section needs a name.", field: "name" };
   }
 
   const slug = currentSlug || slugify(name);
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-    if (uploaded) await discardUpload(uploaded);
-    return { ok: false, error: "A name needs at least one letter or number in it." };
+    return { ok: false, error: "A name needs at least one letter or number in it.", field: "name" };
   }
 
   const previousName = text(form, "currentName");
@@ -458,7 +500,9 @@ export async function saveCategory(
         ...(uploaded ? { imageStorageId: uploaded as Id<"_storage"> } : {}),
       });
     } else {
-      if (!uploaded) return { ok: false, error: "Choose a photograph for this section." };
+      if (!uploaded) {
+        return { ok: false, error: "Choose a photograph for this section.", field: "photograph" };
+      }
       await fetchMutation(api.admin.createCategory, {
         secret: adminSecret(),
         name,
@@ -468,7 +512,6 @@ export async function saveCategory(
       });
     }
   } catch (error) {
-    if (uploaded) await discardUpload(uploaded);
     return { ok: false, error: message(error) };
   }
 

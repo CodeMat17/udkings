@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageField } from "@/components/admin/image-field";
+import { useFormAction } from "@/components/admin/use-form-action";
 import { saveCategory, type SaveCategoryResult } from "@/app/(admin)/actions";
 import type { Category } from "@/lib/types";
 
@@ -31,6 +32,11 @@ export function CategoryForm({ category }: { category?: Category }) {
 
   const router = useRouter();
 
+  // The field the server rejected, if it named one. Drives the focus and the
+  // red outline; cleared as soon as the next save returns.
+  const badField = state && !state.ok ? state.field : undefined;
+  const { formRef, onSubmit } = useFormAction(action, state);
+
   // One save, one toast, however often React re-renders around it.
   const announced = useRef<SaveCategoryResult | null>(null);
   useEffect(() => {
@@ -51,7 +57,7 @@ export function CategoryForm({ category }: { category?: Category }) {
   }, [state, router]);
 
   return (
-    <form action={action} className="mt-8 space-y-8">
+    <form ref={formRef} onSubmit={onSubmit} className="mt-8 space-y-8">
       {category ? (
         <>
           {/* A published section keeps the web address shoppers already have. */}
@@ -67,7 +73,15 @@ export function CategoryForm({ category }: { category?: Category }) {
 
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
-        <Input id="name" name="name" required defaultValue={category?.name} placeholder="Jackets" />
+        <Input
+          id="name"
+          name="name"
+          required
+          data-field="name"
+          aria-invalid={badField === "name" || undefined}
+          defaultValue={category?.name}
+          placeholder="Jackets"
+        />
         <p className="text-xs text-muted-foreground">
           The word on the card — Jeans, Tops, Jackets. The number of styles under it is counted for
           you.

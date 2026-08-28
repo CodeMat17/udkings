@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ImageField } from "@/components/admin/image-field";
+import { useFormAction } from "@/components/admin/use-form-action";
 import { saveProduct, type SaveProductResult } from "@/app/(admin)/actions";
 import type { Category, Product } from "@/lib/types";
 
@@ -43,12 +44,26 @@ function Row({
   name,
   hint,
   defaultValue,
+  invalid,
   ...props
-}: React.ComponentProps<typeof Input> & { label: string; name: string; hint?: string }) {
+}: React.ComponentProps<typeof Input> & {
+  label: string;
+  name: string;
+  hint?: string;
+  /** Marked red and focused when the server rejected this one. */
+  invalid?: boolean;
+}) {
   return (
     <div className="space-y-2">
       <Label htmlFor={name}>{label}</Label>
-      <Input id={name} name={name} defaultValue={defaultValue} {...props} />
+      <Input
+        id={name}
+        name={name}
+        data-field={name}
+        aria-invalid={invalid || undefined}
+        defaultValue={defaultValue}
+        {...props}
+      />
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
@@ -69,6 +84,7 @@ function ChipPicker({
   value,
   onChange,
   hint,
+  invalid,
 }: {
   legend: string;
   name: string;
@@ -76,6 +92,7 @@ function ChipPicker({
   value: string[];
   onChange: (next: string[]) => void;
   hint: string;
+  invalid?: boolean;
 }) {
   function toggle(option: string) {
     onChange(
@@ -84,7 +101,16 @@ function ChipPicker({
   }
 
   return (
-    <fieldset className="space-y-2">
+    <fieldset
+      // Not focusable by default, so it is given a tab stop of its own: the
+      // form has to be able to put the cursor somewhere when it says "choose a
+      // size", and the chips are the somewhere.
+      tabIndex={-1}
+      data-field={name}
+      className={`space-y-2 rounded-lg outline-none ${
+        invalid ? "-m-2 border border-destructive p-2" : ""
+      }`}
+    >
       <legend className="text-sm font-medium">{legend}</legend>
       <input type="hidden" name={name} value={value.join(", ")} />
       <p className="text-xs text-muted-foreground">{hint}</p>
@@ -149,6 +175,11 @@ export function ProductForm({
 
   const router = useRouter();
 
+  // The field the server rejected, if it named one. Drives the focus and the
+  // red outline; replaced whenever the next save returns.
+  const badField = state && !state.ok ? state.field : undefined;
+  const { formRef, onSubmit } = useFormAction(action, state);
+
   /**
    * `useActionState` hands the same result object back on every render, so the
    * toast is tied to its identity: one save, one toast, however often React
@@ -179,7 +210,7 @@ export function ProductForm({
   const tiers = (product?.priceTiers ?? []).slice(1);
 
   return (
-    <form action={action} className="mt-8 space-y-8">
+    <form ref={formRef} onSubmit={onSubmit} className="mt-8 space-y-8">
       {product ? (
         <>
           <input type="hidden" name="productId" value={product.id} />
@@ -195,6 +226,7 @@ export function ProductForm({
           label="Name"
           name="name"
           required
+          invalid={badField === "name"}
           defaultValue={product?.name}
           placeholder="Stone Wash Straight Jean"
         />
@@ -210,7 +242,12 @@ export function ProductForm({
               label: category.name,
             }))}
           >
-            <SelectTrigger id="categorySlug" className="h-9 w-full">
+            <SelectTrigger
+              id="categorySlug"
+              data-field="categorySlug"
+              aria-invalid={badField === "categorySlug" || undefined}
+              className="h-9 w-full"
+            >
               <SelectValue>
                 {(value: string) =>
                   value ? (
@@ -235,6 +272,7 @@ export function ProductForm({
           label="Price (₦)"
           name="retailPrice"
           required
+          invalid={badField === "retailPrice"}
           inputMode="numeric"
           placeholder="18000"
           hint="Whole naira. No kobo, no commas."
@@ -249,6 +287,7 @@ export function ProductForm({
         value={sizes}
         onChange={setSizes}
         hint="Tap every size you have. Tap again to remove it."
+        invalid={badField === "sizes"}
       />
 
       <div className="space-y-2">
@@ -268,7 +307,9 @@ export function ProductForm({
       <More
         summary="Bulk prices"
         note="optional — for customers buying many"
-        open={tiers.length > 0}
+        // Also opened when the rejected field is one of these, so the form can
+        // scroll to a box that would otherwise be folded out of sight.
+        open={tiers.length > 0 || badField?.startsWith("tier")}
       >
         <p className="text-xs text-muted-foreground">
           From this many pieces, each one costs this much. Leave these blank if you only sell one
@@ -278,6 +319,8 @@ export function ProductForm({
           <div key={index} className="flex items-center gap-3">
             <Input
               name="tierMinQty"
+              data-field={`tierMinQty-${index}`}
+              aria-invalid={badField === `tierMinQty-${index}` || undefined}
               inputMode="numeric"
               aria-label={`Bulk price ${index + 1}: from how many pieces`}
               placeholder="From 12"
@@ -286,6 +329,8 @@ export function ProductForm({
             <span className="shrink-0 text-sm text-muted-foreground">pieces →</span>
             <Input
               name="tierUnitPrice"
+              data-field={`tierUnitPrice-${index}`}
+              aria-invalid={badField === `tierUnitPrice-${index}` || undefined}
               inputMode="numeric"
               aria-label={`Bulk price ${index + 1}: price each`}
               placeholder="₦ each"
