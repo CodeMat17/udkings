@@ -12,6 +12,9 @@ function Script({ data }: { data: Record<string, unknown> }) {
   );
 }
 
+/** Uploaded photographs are absolute Convex URLs; seeded ones are site paths. */
+const absolute = (src: string) => (/^https?:\/\//.test(src) ? src : `${SITE_URL}${src}`);
+
 const ADDRESS = {
   "@type": "PostalAddress",
   streetAddress: `${BUSINESS.address.street}, ${BUSINESS.address.landmark}`,
@@ -83,7 +86,7 @@ export function ProductJsonLd({ product }: { product: Product }) {
         name: product.name,
         description: product.seoDescription,
         sku: product.sku,
-        image: `${SITE_URL}${product.image.src}`,
+        image: absolute(product.image.src),
         brand: { "@type": "Brand", name: BUSINESS.name },
         offers: {
           "@type": "AggregateOffer",
@@ -91,7 +94,6 @@ export function ProductJsonLd({ product }: { product: Product }) {
           lowPrice: best.unitPrice,
           highPrice: product.retailPrice,
           offerCount: product.priceTiers.length,
-          // Everything in the catalogue is a colour and size we actually hold.
           availability: "https://schema.org/InStock",
           url: `${SITE_URL}/product/${product.slug}`,
           seller: { "@type": "Organization", name: BUSINESS.name },
@@ -101,11 +103,7 @@ export function ProductJsonLd({ product }: { product: Product }) {
   );
 }
 
-export function BreadcrumbJsonLd({
-  trail,
-}: {
-  trail: { name: string; href: string }[];
-}) {
+export function BreadcrumbJsonLd({ trail }: { trail: { name: string; href: string }[] }) {
   return (
     <Script
       data={{

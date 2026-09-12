@@ -2,8 +2,11 @@ import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { BUSINESS, SITE_URL } from "@/lib/business";
-import { nunito } from "./fonts";
+import { displayFont, uiFont } from "./fonts";
 import "./globals.css";
+
+const DESCRIPTION =
+  "Ladies' gowns, jeans, tops and two-piece sets from Andora Plaza, Lagos Island. Retail and wholesale from one catalogue, ordered on WhatsApp.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -11,8 +14,7 @@ export const metadata: Metadata = {
     default: "UDKING'S Collections — Ladies Wear, Lagos Island",
     template: "%s | UDKING'S Collections",
   },
-  description:
-    "Ladies' jeans, tops, gowns and two-piece sets from Andora Plaza, Lagos Island. Retail and wholesale from the same catalogue, ordered on WhatsApp.",
+  description: DESCRIPTION,
   applicationName: BUSINESS.name,
   keywords: [
     "ladies wear Lagos Island",
@@ -20,9 +22,7 @@ export const metadata: Metadata = {
     "wholesale ladies wear Lagos",
     "wholesale clothes Lagos Island",
     "jeans wholesale Lagos",
-    "ladies jeans Lagos",
     "gowns Lagos",
-    "bump shorts Lagos",
   ],
   openGraph: {
     type: "website",
@@ -33,8 +33,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "UDKING'S Collections — Ladies Wear, Lagos Island",
-    description:
-      "Ladies' jeans, tops, gowns and two-piece sets from Andora Plaza, Lagos Island. Retail and wholesale from the same catalogue, ordered on WhatsApp.",
+    description: DESCRIPTION,
   },
   formatDetection: { telephone: false },
 };
@@ -44,8 +43,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F1F0EC" },
-    { media: "(prefers-color-scheme: dark)", color: "#10132B" },
+    { media: "(prefers-color-scheme: light)", color: "#F6F3EE" },
+    { media: "(prefers-color-scheme: dark)", color: "#131110" },
   ],
 };
 
@@ -54,7 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${nunito.variable} h-full antialiased`}
+      className={`${displayFont.variable} ${uiFont.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <ThemeProvider
@@ -64,7 +63,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           disableTransitionOnChange
         >
           {children}
-          <Toaster position="top-center" richColors closeButton />
+          <Toaster position="top-center" closeButton />
         </ThemeProvider>
       </body>
     </html>

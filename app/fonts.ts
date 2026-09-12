@@ -1,13 +1,20 @@
-import { Nunito } from "next/font/google";
+import { Cormorant_Garamond, Manrope } from "next/font/google";
 
 /**
- * One family only — Nunito. Every extra family is another render-blocking
- * asset on a 3G phone. The display voice is Nunito 900 with tight tracking;
- * the utility voice is Nunito 800 uppercase, wide.
+ * Two families, both self-hosted by next/font at build time: a high-contrast
+ * serif for the display voice, and a clean grotesque for everything you read
+ * or tap.
  */
-export const nunito = Nunito({
+export const displayFont = Cormorant_Garamond({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-nunito",
-  weight: ["400", "600", "700", "800", "900"],
+  variable: "--font-display-serif",
+  weight: ["500", "600"],
+  style: ["normal", "italic"],
+});
+
+export const uiFont = Manrope({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-ui",
 });

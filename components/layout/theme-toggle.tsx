@@ -32,14 +32,14 @@ export function ThemeToggle() {
           ? `Switch to ${isDark ? "light" : "dark"} mode`
           : "Switch colour theme"
       }
-      className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-md border border-border bg-card transition-colors hover:bg-accent"
+      className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full transition-colors hover:bg-secondary"
     >
       <span className="grid size-5 place-items-center" aria-hidden="true">
         {mounted ? (
           isDark ? (
-            <MoonIcon className="size-5" />
+            <MoonIcon className="size-5" strokeWidth={1.5} />
           ) : (
-            <SunIcon className="size-5" />
+            <SunIcon className="size-5" strokeWidth={1.5} />
           )
         ) : null}
       </span>

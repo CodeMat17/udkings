@@ -1,99 +1,62 @@
-import { bestPriceFor } from "./pricing";
-import type { Product } from "./types";
+import type { ProductCardData } from "./card-data";
 
 export const SORTS = [
   { value: "newest", label: "Newest" },
+  { value: "popular", label: "Most popular" },
   { value: "price_asc", label: "Price, low to high" },
   { value: "price_desc", label: "Price, high to low" },
-  { value: "popular", label: "Most popular" },
-  { value: "best_selling", label: "Best selling" },
 ] as const;
 
 export type SortValue = (typeof SORTS)[number]["value"];
 
 export type ShopQuery = {
-  q?: string;
-  category?: string;
-  size?: string;
-  sort?: string;
-  wholesale?: string;
+  q: string;
+  category: string;
+  wholesale: boolean;
+  sort: SortValue;
 };
 
-function asString(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
+export const EMPTY_QUERY: ShopQuery = { q: "", category: "", wholesale: false, sort: "newest" };
 
-export function readQuery(
-  params: Record<string, string | string[] | undefined>,
-): ShopQuery {
+export function readQuery(params: URLSearchParams): ShopQuery {
+  const sort = params.get("sort");
   return {
-    q: asString(params.q),
-    category: asString(params.category),
-    size: asString(params.size),
-    sort: asString(params.sort),
-    wholesale: asString(params.wholesale),
+    q: params.get("q") ?? "",
+    category: params.get("category") ?? "",
+    wholesale: params.get("wholesale") === "1",
+    sort: SORTS.some((s) => s.value === sort) ? (sort as SortValue) : "newest",
   };
 }
 
-/**
- * Pure. The catalogue is now an async Convex read, so the caller fetches it and
- * passes it in — this file stays a function of its inputs and is testable
- * without a deployment.
- */
-export function applyQuery(query: ShopQuery, source: Product[]): Product[] {
-  let results = [...source];
+/** The query as a search string — "" when nothing differs from the default view. */
+export function writeQuery(query: ShopQuery): string {
+  const params = new URLSearchParams();
+  if (query.q) params.set("q", query.q);
+  if (query.category) params.set("category", query.category);
+  if (query.wholesale) params.set("wholesale", "1");
+  if (query.sort !== "newest") params.set("sort", query.sort);
+  const out = params.toString();
+  return out ? `?${out}` : "";
+}
 
-  if (query.q) {
-    const q = query.q.trim().toLowerCase();
-    results = results.filter((p) =>
-      [p.name, p.sku, p.categorySlug, ...p.sizes]
-        .join(" ")
-        .toLowerCase()
-        .includes(q),
-    );
-  }
-  if (query.category) {
-    results = results.filter((p) => p.categorySlug === query.category);
-  }
-  if (query.size) {
-    results = results.filter((p) => p.sizes.includes(query.size!));
-  }
-  if (query.wholesale === "1") {
-    results = results.filter((p) => p.wholesaleMinQty !== null);
-  }
+/** Pure, and runs in the browser over the statically rendered catalogue. */
+export function applyQuery(query: ShopQuery, source: ProductCardData[]): ProductCardData[] {
+  const q = query.q.trim().toLowerCase();
+  const results = source.filter(
+    (p) =>
+      (!q || [p.name, p.categorySlug, ...p.sizes].join(" ").toLowerCase().includes(q)) &&
+      (!query.category || p.categorySlug === query.category) &&
+      (!query.wholesale || p.wholesaleMinQty !== null),
+  );
 
   switch (query.sort) {
     case "price_asc":
-      results.sort((a, b) => a.retailPrice - b.retailPrice);
-      break;
+      return results.sort((a, b) => a.retailPrice - b.retailPrice);
     case "price_desc":
-      results.sort((a, b) => b.retailPrice - a.retailPrice);
-      break;
+      return results.sort((a, b) => b.retailPrice - a.retailPrice);
     case "popular":
-    case "best_selling":
-      results.sort((a, b) => b.orderCount - a.orderCount);
-      break;
+      return results.sort((a, b) => b.orderCount - a.orderCount);
     default:
-      results.sort((a, b) => b.createdAt - a.createdAt);
+      return results.sort((a, b) => b.createdAt - a.createdAt);
   }
-
-  return results;
-}
-
-/** Every size present in a given set of products, in wearing order. */
-export function sizesIn(products: Product[]): string[] {
-  return Array.from(new Set(products.flatMap((p) => p.sizes))).sort((a, b) => {
-    const order = ["S", "M", "L", "XL", "XXL"];
-    const ai = order.indexOf(a);
-    const bi = order.indexOf(b);
-    if (ai !== -1 || bi !== -1) return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-    return Number(a) - Number(b);
-  });
-}
-
-/** "From ₦7,200 each at 6 pieces" — used on listing summaries. */
-export function summarise(product: Product): string {
-  const best = bestPriceFor(product);
-  if (product.wholesaleMinQty === null) return "One price";
-  return `From ${best.unitPrice} at ${best.minQty} pieces`;
 }

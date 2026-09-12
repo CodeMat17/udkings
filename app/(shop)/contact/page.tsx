@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { MapPinIcon, MessageCircleIcon, PhoneIcon } from "lucide-react";
+import { ArrowUpRightIcon, MapPinIcon, PhoneIcon } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp";
+import { PageIntro } from "@/components/layout/page-intro";
 import { BUSINESS, waLink } from "@/lib/business";
 
 export const metadata: Metadata = {
@@ -9,60 +11,57 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
+const CARD =
+  "group flex items-center gap-5 rounded-lg border border-border bg-card p-6 transition-colors hover:border-foreground";
+
 export default function ContactPage() {
   return (
-    <div className="shell max-w-[68ch] py-10">
-      <p className="label text-accent-ink">Talk to us</p>
-      <h1 className="display mt-2 text-[length:var(--text-display-l)]">Contact</h1>
-      <p className="mt-4 text-muted-foreground">
-        WhatsApp is fastest — it is where orders, stock questions and delivery
-        arrangements all happen. We answer during shop hours.
-      </p>
-
-      <ul className="mt-8 space-y-4">
-        <li>
+    <>
+      <PageIntro eyebrow="Talk to us" title="Contact">
+        WhatsApp is fastest — orders, stock questions and delivery all happen
+        there. We answer during shop hours.
+      </PageIntro>
+      <ul className="shell grid max-w-4xl gap-4 md:grid-cols-2 lg:mx-0">
+        <li className="md:col-span-2">
           <a
             href={waLink(`Hello ${BUSINESS.name}, I have a question.`)}
             target="_blank"
-            rel="noopener"
-            className="flex items-center gap-4 rounded-md border border-border bg-card p-5 hover:bg-accent"
+            rel="noopener noreferrer"
+            className={CARD}
           >
-            <MessageCircleIcon className="size-6 shrink-0 text-stock" aria-hidden="true" />
-            <span>
-              <span className="block font-extrabold">
-                WhatsApp {BUSINESS.phoneDisplay}
-              </span>
-              <span className="block text-sm text-muted-foreground">
-                Opens WhatsApp in a new tab
-              </span>
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-whatsapp text-white">
+              <WhatsAppIcon className="size-5" aria-hidden="true" />
             </span>
+            <span className="flex-1">
+              <span className="block font-semibold">WhatsApp {BUSINESS.phoneDisplay}</span>
+              <span className="block text-sm text-muted-foreground">Opens WhatsApp in a new tab</span>
+            </span>
+            <ArrowUpRightIcon className="size-5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" strokeWidth={1.5} aria-hidden="true" />
           </a>
         </li>
         <li>
-          <a
-            href={BUSINESS.telHref}
-            className="flex items-center gap-4 rounded-md border border-border bg-card p-5 hover:bg-accent"
-          >
-            <PhoneIcon className="size-6 shrink-0 text-accent-ink" aria-hidden="true" />
+          <a href={BUSINESS.telHref} className={CARD}>
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-secondary">
+              <PhoneIcon className="size-5" strokeWidth={1.5} aria-hidden="true" />
+            </span>
             <span>
-              <span className="block font-extrabold">Call {BUSINESS.phoneDisplay}</span>
-              <span className="block text-sm text-muted-foreground">
-                Best if you are on your way to the shop
-              </span>
+              <span className="block font-semibold">Call {BUSINESS.phoneDisplay}</span>
+              <span className="block text-sm text-muted-foreground">Best if you are on your way</span>
             </span>
           </a>
         </li>
-        <li className="flex items-center gap-4 rounded-md border border-border bg-card p-5">
-          <MapPinIcon className="size-6 shrink-0 text-accent-ink" aria-hidden="true" />
+        <li className="flex items-center gap-5 rounded-lg border border-border bg-card p-6">
+          <span className="grid size-12 shrink-0 place-items-center rounded-full bg-secondary">
+            <MapPinIcon className="size-5" strokeWidth={1.5} aria-hidden="true" />
+          </span>
           <span>
-            <span className="block font-extrabold">{BUSINESS.address.street}</span>
+            <span className="block font-semibold">{BUSINESS.address.street}</span>
             <span className="block text-sm text-muted-foreground">
-              {BUSINESS.address.landmark}, {BUSINESS.address.locality},{" "}
-              {BUSINESS.address.region}
+              {BUSINESS.address.landmark}, {BUSINESS.address.locality}
             </span>
           </span>
         </li>
       </ul>
-    </div>
+    </>
   );
 }

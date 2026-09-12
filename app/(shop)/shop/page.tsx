@@ -1,43 +1,36 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { FilterBar } from "@/components/shop/filter-bar";
-import { ProductGrid } from "@/components/shop/product-grid";
-import { applyQuery, readQuery } from "@/lib/filter";
+import { PageIntro } from "@/components/layout/page-intro";
+import { CatalogueBrowser } from "@/components/shop/catalogue-browser";
 import { getCategories, getProducts } from "@/lib/catalog";
+import { toCardData } from "@/lib/card-data";
+
+/**
+ * Static. Search, category, wholesale and sort run in the browser over the
+ * catalogue rendered here, so no visitor ever triggers a server render.
+ */
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Shop all ladies wear",
   description:
-    "The full UDKING'S Collections catalogue — jeans, tops, gowns, skirts, bump shorts, jackets, trousers and sets. Filter by category and wholesale.",
+    "The full UDKING'S Collections catalogue — gowns, jeans, tops, skirts, bump shorts, jackets, trousers and sets, at retail and wholesale prices.",
   alternates: { canonical: "/shop" },
 };
 
-export default async function ShopPage(props: PageProps<"/shop">) {
-  const params = await props.searchParams;
-  const query = readQuery(params);
-  const products = applyQuery(query, await getProducts());
+export default async function ShopPage() {
+  const [categories, products] = await Promise.all([getCategories(), getProducts()]);
 
   return (
-    <div className="shell py-10">
-      <p className="label text-accent-ink">The catalogue</p>
-      <h1 className="display mt-2 text-[length:var(--text-display-l)]">
-        {query.q ? `Results for “${query.q}”` : "Everything in the shop"}
-      </h1>
-      <p className="mt-4 max-w-[60ch] text-muted-foreground">
-        Filters live in the address bar, so you can send this exact view to
-        somebody on WhatsApp and they will see what you see.
-      </p>
-
-      <div className="mt-8">
-        <Suspense fallback={<div className="h-11" />}>
-          <FilterBar
-            resultCount={products.length}
-            categories={(await getCategories()).map((c) => ({ name: c.name, slug: c.slug }))}
-          />
-        </Suspense>
+    <>
+      <PageIntro eyebrow="The collection" title="Shop all">
+        Every piece in the shop, with retail and wholesale prices side by side.
+      </PageIntro>
+      <div className="shell">
+        <CatalogueBrowser
+          products={products.map(toCardData)}
+          categories={categories.map((c) => ({ name: c.name, slug: c.slug }))}
+        />
       </div>
-
-      <ProductGrid products={products} />
-    </div>
+    </>
   );
 }

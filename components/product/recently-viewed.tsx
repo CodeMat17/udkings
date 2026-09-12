@@ -1,45 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ProductCard } from "./product-card";
-import { useRecentlyViewed } from "@/lib/wishlist-store";
-import { productsBySlugs } from "@/app/actions";
-import type { ProductCardData } from "@/lib/card-data";
+import { useRecentlyViewed } from "@/lib/bag";
 
-/** Never leaves the device. Empty until the customer has actually looked around. */
+/** Read from this device only — no server call, ever. */
 export function RecentlyViewed({ excludeSlug }: { excludeSlug?: string }) {
-  const slugs = useRecentlyViewed();
-  const [products, setProducts] = useState<ProductCardData[]>([]);
-
-  const wanted = slugs.filter((slug) => slug !== excludeSlug);
-  const key = wanted.join(",");
-
-  useEffect(() => {
-    if (wanted.length === 0) return;
-    let cancelled = false;
-    void productsBySlugs(wanted).then((found) => {
-      if (!cancelled) setProducts(found);
-    });
-    return () => {
-      cancelled = true;
-    };
-    // `key` is the stable identity of the slug list.
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  const products = useRecentlyViewed().filter((product) => product.slug !== excludeSlug);
   if (products.length === 0) return null;
 
   return (
-    <section className="mt-20">
+    <section className="mt-20 sm:mt-28">
       <div className="shell">
-        <h2 className="display text-[length:var(--text-display-m)]">
-          Recently viewed
-        </h2>
+        <p className="label text-muted-foreground">Pick up where you left off</p>
+        <h2 className="display mt-3 text-[length:var(--text-display-m)]">Recently viewed</h2>
       </div>
-      <div className="hairline mt-5" />
-      <ul className="rail shell mt-6 pb-2">
+      <ul className="rail shell mt-8 sm:gap-5">
         {products.map((product) => (
           <li key={product.id}>
-            <ProductCard product={product} density="rail" />
+            <ProductCard product={product} rail />
           </li>
         ))}
       </ul>

@@ -1,104 +1,60 @@
 import Link from "next/link";
 import Image from "next/image";
-import { bestPriceFor } from "@/lib/pricing";
 import { formatNaira } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { SaveButton } from "./save-button";
 import type { ProductCardData } from "@/lib/card-data";
 
-type Density = "rail" | "grid" | "list";
-
-const SIZES: Record<Density, string> = {
-  rail: "(max-width: 640px) 62vw, 260px",
-  grid: "(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 300px",
-  list: "112px",
-};
+export const GRID_CLASS = "grid grid-cols-2 gap-x-3 gap-y-10 sm:gap-x-5 lg:grid-cols-4";
 
 export function ProductCard({
   product,
-  density = "grid",
   priority = false,
+  rail = false,
 }: {
   product: ProductCardData;
-  density?: Density;
   priority?: boolean;
+  rail?: boolean;
 }) {
-  const best = bestPriceFor(product);
-  const hasWholesale = product.wholesaleMinQty !== null;
-
-  if (density === "list") {
-    return (
-      <Card size="sm" className="group py-0 transition-colors hover:bg-accent">
-        <Link href={`/product/${product.slug}`} className="flex gap-4 p-3">
-          <Image
-            src={product.image}
-            alt={product.imageAlt}
-            width={112}
-            height={140}
-            sizes={SIZES.list}
-            className="h-35 w-28 shrink-0 rounded-md bg-white object-cover"
-          />
-          <div className="min-w-0 flex-1">
-            <h3 className="font-heading leading-snug font-bold">{product.name}</h3>
-            <p className="mt-1 text-lg font-extrabold">
-              {formatNaira(product.retailPrice)}
-            </p>
-            {hasWholesale ? (
-              <p className="label mt-2 text-wholesale">
-                Wholesale from {product.wholesaleMinQty} pieces
-              </p>
-            ) : null}
-          </div>
-        </Link>
-      </Card>
-    );
-  }
 
   return (
-    <Card
-      className={cn(
-        "shadow-md group relative gap-3 pt-0",
-        density === "rail" ? "w-[62vw] max-w-[260px] sm:w-[260px]" : "w-full",
-      )}>
-      <Link href={`/product/${product.slug}`} className='block'>
-        <div className='relative aspect-[4/5] overflow-hidden rounded-t-xl bg-white'>
+    <article className={cn("group relative", rail && "w-[64vw] max-w-[290px] sm:w-[290px]")}>
+      <Link
+        href={`/product/${product.slug}`}
+        className="block overflow-hidden rounded-md border border-border bg-card"
+      >
+        <div className="relative aspect-[3/4] overflow-hidden bg-secondary">
           <Image
             src={product.image}
             alt={product.imageAlt}
             fill
-            sizes={SIZES[density]}
-            priority={priority}
-            fetchPriority={priority ? "high" : undefined}
-            className='object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100'
+            sizes={
+              rail
+                ? "(max-width: 640px) 64vw, 290px"
+                : "(max-width: 640px) 48vw, (max-width: 1024px) 32vw, 320px"
+            }
+            loading={priority ? "eager" : "lazy"}
+            className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
           {product.isNewArrival ? (
-            <span className='absolute top-0 left-0 bg-background/95 px-3 py-1.5 text-[0.6875rem] font-extrabold tracking-widest text-accent-ink uppercase'>
-              New in
+            <span className="absolute top-3 left-3 rounded-full bg-background/90 px-2.5 py-1 text-[0.625rem] font-semibold tracking-[0.14em] uppercase">
+              New
             </span>
           ) : null}
         </div>
 
-        <CardContent className='mt-3'>
-          <h3 className='font-heading text-base leading-snug font-bold'>
-            {product.name}
-          </h3>
-          <p className='mt-1 text-lg font-extrabold'>
+        <div className="border-t border-border px-3 py-2.5">
+          <h3 className="line-clamp-1 text-[0.9375rem] font-medium">{product.name}</h3>
+          <p className="mt-0.5 text-[0.9375rem] text-muted-foreground tabular-nums">
             {formatNaira(product.retailPrice)}
-            <span className='ml-1.5 text-sm font-semibold text-muted-foreground'>
-              per piece
-            </span>
           </p>
-        </CardContent>
-
-        {hasWholesale ? (
-          <CardFooter className='py-2 text-xs'>
-            <p className='text-wholesale'>
-              Wholesale from {product.wholesaleMinQty} pieces &mdash;{" "}
-              {formatNaira(best.unitPrice)} each
-            </p>
-          </CardFooter>
-        ) : null}
+        </div>
       </Link>
-    </Card>
+
+      <SaveButton
+        product={product}
+        className="absolute top-2 right-2 grid size-9 place-items-center rounded-full bg-background/85 transition-colors hover:bg-background"
+      />
+    </article>
   );
 }

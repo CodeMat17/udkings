@@ -1,48 +1,28 @@
 import Link from "next/link";
-import { ProductCard } from "@/components/product/product-card";
-import { Reveal } from "@/components/motion/reveal";
-import { getCategories } from "@/lib/catalog";
-import { toCardData } from "@/lib/card-data";
-import type { Product } from "@/lib/types";
+import { GRID_CLASS, ProductCard } from "@/components/product/product-card";
+import type { ProductCardData } from "@/lib/card-data";
 
-export async function ProductGrid({ products }: { products: Product[] }) {
-  const categories = await getCategories();
+export function ProductGrid({ products }: { products: ProductCardData[] }) {
   if (products.length === 0) {
-    /* An empty result is an invitation, not an apology. */
     return (
-      <div className="mt-10 rounded-md border border-border bg-card p-8">
-        <h2 className="display text-2xl">Nothing matches that combination</h2>
-        <p className="mt-2 max-w-[52ch] text-muted-foreground">
-          Try one filter fewer, or start from a category — every rail in the
-          shop is one tap away.
+      <div className="rounded-lg border border-dashed border-border px-6 py-16 text-center">
+        <p className="display text-3xl">New pieces are on their way</p>
+        <p className="mx-auto mt-3 max-w-[44ch] text-muted-foreground">
+          Nothing here just now. Browse the full collection, or ask us on
+          WhatsApp what has just landed.
         </p>
-        <ul className="mt-5 flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <li key={category.slug}>
-              <Link
-                href={`/category/${category.slug}`}
-                className="inline-flex h-11 items-center rounded-sm border border-border px-4 font-semibold hover:bg-accent"
-              >
-                {category.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <Link href="/shop" className="btn btn-outline mt-6">
+          Shop all
+        </Link>
       </div>
     );
   }
 
   return (
-    <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4">
+    <ul className={GRID_CLASS}>
       {products.map((product, index) => (
         <li key={product.id}>
-          <Reveal index={Math.min(index, 5)}>
-            <ProductCard
-              product={toCardData(product)}
-              density="grid"
-              priority={index < 2}
-            />
-          </Reveal>
+          <ProductCard product={product} priority={index < 4} />
         </li>
       ))}
     </ul>

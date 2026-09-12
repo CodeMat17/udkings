@@ -1,6 +1,7 @@
 "use client";
 
 import { MinusIcon, PlusIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function QuantityStepper({
   value,
@@ -16,23 +17,26 @@ export function QuantityStepper({
   label?: string;
   size?: "lg" | "sm";
 }) {
-  const dim = size === "lg" ? "size-12" : "size-11";
+  const button = cn(
+    "grid place-items-center rounded-full transition-colors hover:bg-secondary disabled:opacity-30 disabled:hover:bg-transparent",
+    size === "lg" ? "size-11" : "size-8",
+  );
 
   return (
-    <div className="inline-flex items-center rounded-md border border-border bg-card">
+    <div className="inline-flex items-center rounded-full border border-border bg-card p-0.5">
       <button
         type="button"
         onClick={() => onChange(Math.max(1, value - 1))}
         disabled={value <= 1}
         aria-label={`Decrease ${label.toLowerCase()}`}
-        className={`${dim} grid place-items-center rounded-l-md disabled:opacity-40`}
+        className={button}
       >
-        <MinusIcon className="size-4" aria-hidden="true" />
+        <MinusIcon className="size-3.5" aria-hidden="true" />
       </button>
       <span
         aria-live="polite"
         aria-label={`${label}: ${value}`}
-        className="min-w-12 px-1 text-center text-lg font-extrabold tabular-nums"
+        className={cn("text-center font-medium tabular-nums", size === "lg" ? "min-w-10" : "min-w-7 text-sm")}
       >
         {value}
       </span>
@@ -41,9 +45,9 @@ export function QuantityStepper({
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
         aria-label={`Increase ${label.toLowerCase()}`}
-        className={`${dim} grid place-items-center rounded-r-md disabled:opacity-40`}
+        className={button}
       >
-        <PlusIcon className="size-4" aria-hidden="true" />
+        <PlusIcon className="size-3.5" aria-hidden="true" />
       </button>
     </div>
   );

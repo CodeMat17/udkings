@@ -3,75 +3,29 @@ import type { NextRequest } from "next/server";
 import { ADMIN_COOKIE, verifySessionToken } from "@/lib/admin-auth";
 
 /**
- * Next 16 renamed middleware to proxy. Security headers live here, plus the
- * per-request CSP nonce, plus the admin route gate.
+ * The admin route gate — and nothing else.
  *
- * The gate is worth being precise about: it stops someone *loading* an admin
- * page without a session. It is not what protects the data. Convex functions
- * are public HTTP endpoints, so the real wall is `requireAdmin` inside every
- * mutation in `convex/admin.ts`, plus the session check in every server
- * action. This is one layer of three, and the least important of them.
+ * The matcher keeps this off every public route, so a visitor browsing the
+ * catalogue never invokes a function here. Security headers moved to
+ * `next.config.ts`, where the CDN serves them with the static files.
+ *
+ * This stops someone *loading* an admin page without a session. It is not what
+ * protects the data: that is the session check in every server action plus
+ * `requireAdmin` inside every Convex mutation.
  */
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  if (request.nextUrl.pathname === "/admin/login") return NextResponse.next();
 
-  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    const token = request.cookies.get(ADMIN_COOKIE)?.value;
-    if (!(await verifySessionToken(token))) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/admin/login";
-      url.search = "";
-      return NextResponse.redirect(url);
-    }
+  if (await verifySessionToken(request.cookies.get(ADMIN_COOKIE)?.value)) {
+    return NextResponse.next();
   }
 
-  const nonce = crypto.randomUUID().replace(/-/g, "");
-
-  const csp = [
-    `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
-    `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' data: blob: https://res.cloudinary.com`,
-    `font-src 'self'`,
-    `connect-src 'self'`,
-    `form-action 'self'`,
-    `frame-ancestors 'none'`,
-    `base-uri 'self'`,
-    `object-src 'none'`,
-    // `upgrade-insecure-requests` belongs here, but it does nothing in a
-    // report-only policy — it rewrites requests rather than reporting on them,
-    // so the browser drops it and logs a console notice on every page. It goes
-    // back in the list at the same time as the flip to the enforcing header
-    // below. Strict-Transport-Security already covers the same ground for
-    // navigations meanwhile.
-  ].join("; ");
-
-  const headers = new Headers(request.headers);
-  headers.set("x-nonce", nonce);
-
-  const response = NextResponse.next({ request: { headers } });
-
-  // Report-only first, per §14.3 — flip to Content-Security-Policy once the
-  // report endpoint is quiet on every route.
-  response.headers.set("Content-Security-Policy-Report-Only", csp);
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=63072000; includeSubDomains; preload",
-  );
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set(
-    "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), interest-cohort=()",
-  );
-  response.headers.set("X-Frame-Options", "DENY");
-
-  return response;
+  const url = request.nextUrl.clone();
+  url.pathname = "/admin/login";
+  url.search = "";
+  return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: [
-    // Everything except static assets and image optimisation.
-    "/((?!_next/static|_next/image|favicon.ico|catalogue|.*\.svg$|.*\.png$).*)",
-  ],
+  matcher: ["/admin", "/admin/:path*"],
 };

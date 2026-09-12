@@ -1,29 +1,28 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { PlusIcon } from "lucide-react";
 import { Photo } from "@/components/product/photo";
 import { BuyPanel } from "@/components/product/buy-panel";
-import { MotionProvider } from "@/components/motion/provider";
-import { ProductCard } from "@/components/product/product-card";
-import { ProductEnquiry } from "@/components/product/product-enquiry";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
-import { Reveal } from "@/components/motion/reveal";
+import { Rail } from "@/components/home/rail";
 import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/seo/json-ld";
 import { categoryBySlug, getProducts, productBySlug, relatedTo } from "@/lib/catalog";
 import { toCardData } from "@/lib/card-data";
-import { formatNaira } from "@/lib/format";
 import { BUSINESS } from "@/lib/business";
 
-export const revalidate = 60;
+/**
+ * Prerendered for every product at build; a product added later renders on its
+ * first visit and is cached from then on. An admin save expires the cache.
+ */
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   const products = await getProducts();
   return products.map((product) => ({ slug: product.slug }));
 }
 
-export async function generateMetadata(
-  props: PageProps<"/product/[slug]">,
-): Promise<Metadata> {
+export async function generateMetadata(props: PageProps<"/product/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
   const product = await productBySlug(slug);
   if (!product) return { title: "Product not found" };
@@ -41,14 +40,39 @@ export async function generateMetadata(
   };
 }
 
+function Disclosure({
+  title,
+  open = false,
+  children,
+}: {
+  title: string;
+  open?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="group" open={open}>
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-medium">
+        {title}
+        <PlusIcon
+          className="size-4 shrink-0 transition-transform duration-300 group-open:rotate-45"
+          strokeWidth={1.5}
+          aria-hidden="true"
+        />
+      </summary>
+      <div className="pb-6 text-[0.9375rem] leading-relaxed text-muted-foreground">{children}</div>
+    </details>
+  );
+}
+
 export default async function ProductPage(props: PageProps<"/product/[slug]">) {
   const { slug } = await props.params;
   const product = await productBySlug(slug);
   if (!product) notFound();
 
-  const category = await categoryBySlug(product.categorySlug);
-  const related = await relatedTo(product, 6);
-  const tiers = [...product.priceTiers].sort((a, b) => a.minQty - b.minQty);
+  const [category, related] = await Promise.all([
+    categoryBySlug(product.categorySlug),
+    relatedTo(product),
+  ]);
 
   return (
     <>
@@ -61,155 +85,70 @@ export default async function ProductPage(props: PageProps<"/product/[slug]">) {
         ]}
       />
 
-      <div className="shell pt-6">
+      <div className="shell pt-5">
         <nav aria-label="Breadcrumb">
-          <ol className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <ol className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <li>
-              <Link href="/" className="hover:underline">
-                Home
-              </Link>
+              <Link href="/" className="hover:text-foreground">Home</Link>
             </li>
             <li aria-hidden="true">/</li>
             <li>
-              <Link
-                href={`/category/${product.categorySlug}`}
-                className="hover:underline"
-              >
+              <Link href={`/category/${product.categorySlug}`} className="hover:text-foreground">
                 {category?.name ?? "Shop"}
               </Link>
             </li>
             <li aria-hidden="true">/</li>
-            <li aria-current="page" className="text-foreground">
-              {product.name}
-            </li>
+            <li aria-current="page" className="text-foreground">{product.name}</li>
           </ol>
         </nav>
       </div>
 
-      <div className="shell mt-6 grid gap-10 lg:grid-cols-2 lg:gap-16">
-        <Photo image={product.image} name={product.name} />
+      <div className="shell mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-16">
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <Photo image={product.image} name={product.name} />
+        </div>
 
-        <div>
-          <h1 className="display text-[length:var(--text-display-m)]">
-            {product.name}
-          </h1>
-          <p className="label mt-2 text-muted-foreground">SKU {product.sku}</p>
-          <MotionProvider>
-            <BuyPanel product={product} />
-          </MotionProvider>
+        <div className="lg:pt-4">
+          {category ? (
+            <Link href={`/category/${category.slug}`} className="label text-muted-foreground hover:text-foreground">
+              {category.name}
+            </Link>
+          ) : null}
+          <h1 className="display mt-3 text-[length:var(--text-display-m)] text-balance">{product.name}</h1>
+
+          <BuyPanel product={product} />
+
+          <div className="mt-10 divide-y divide-border border-y border-border">
+            <Disclosure title="Description" open>
+              {product.description ||
+                "Ask us on WhatsApp for fabric, fit and measurements — we reply during shop hours."}
+            </Disclosure>
+
+            <Disclosure title="Delivery & pickup">
+              Free pickup at {BUSINESS.address.street}, {BUSINESS.address.locality} —{" "}
+              {BUSINESS.address.landmark.toLowerCase()}. We deliver anywhere in
+              Nigeria; the fee is agreed with you on WhatsApp before you pay.{" "}
+              <Link href="/visit-us" className="text-foreground underline underline-offset-4">
+                Opening hours
+              </Link>
+            </Disclosure>
+
+            <Disclosure title="Exchanges">
+              Bring an unworn piece with its tags back to the shop within three
+              days and we will exchange it for another size, or another piece of
+              the same value.
+            </Disclosure>
+          </div>
+          <p className="mt-4 text-xs text-muted-foreground">Ref. {product.sku}</p>
         </div>
       </div>
 
-      <Reveal as="section" className="shell mt-16">
-        <h2 className="display text-2xl">About this piece</h2>
-        <p className="mt-4 max-w-[68ch] text-lg">{product.description}</p>
-        <ProductEnquiry product={product} />
-      </Reveal>
-
-      {tiers.length > 1 ? (
-        <Reveal as="section" className="shell mt-16">
-          <h2 className="display text-2xl">The price ladder</h2>
-          <p className="mt-2 max-w-[60ch] text-muted-foreground">
-            {product.wholesaleMinQty === null
-              ? "This piece is sold at one price."
-              : `Wholesale starts from ${product.wholesaleMinQty} pieces. Mix sizes across this style — the ladder counts the total.`}
-          </p>
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[420px] border-collapse text-left">
-              <caption className="sr-only">
-                Unit price by quantity for {product.name}
-              </caption>
-              <thead>
-                <tr className="border-b border-border">
-                  <th scope="col" className="label py-3 text-muted-foreground">
-                    Quantity
-                  </th>
-                  <th scope="col" className="label py-3 text-muted-foreground">
-                    Price each
-                  </th>
-                  <th scope="col" className="label py-3 text-muted-foreground">
-                    Tier
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {tiers.map((tier) => {
-                  const wholesale =
-                    product.wholesaleMinQty !== null &&
-                    tier.minQty >= product.wholesaleMinQty;
-                  return (
-                    <tr key={tier.minQty} className="border-b border-border">
-                      <td className="py-3 font-semibold tabular-nums">
-                        {tier.minQty}
-                        {tier.minQty === tiers[tiers.length - 1]?.minQty ? "+" : ""}{" "}
-                        pieces
-                      </td>
-                      <td className="py-3 font-extrabold tabular-nums">
-                        {formatNaira(tier.unitPrice)}
-                      </td>
-                      <td
-                        className="py-3 font-bold"
-                        style={{
-                          color: wholesale
-                            ? "var(--wholesale-ink)"
-                            : "var(--muted-foreground)",
-                        }}
-                      >
-                        {wholesale ? "Wholesale" : "Retail"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Reveal>
-      ) : null}
-
-      <Reveal as="section" className="shell mt-16">
-        <h2 className="display text-2xl">Getting it to you</h2>
-        <div className="mt-4 grid gap-6 sm:grid-cols-2">
-          <div className="rounded-md border border-border bg-card p-5">
-            <h3 className="font-extrabold">Pickup</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {BUSINESS.address.street}, {BUSINESS.address.locality}.{" "}
-              {BUSINESS.address.landmark}. Same-day collection when the piece is
-              here.
-            </p>
-            <Link href="/visit-us" className="mt-3 inline-block font-bold hover:underline">
-              See the shop and opening hours
-            </Link>
-          </div>
-          <div className="rounded-md border border-border bg-card p-5">
-            <h3 className="font-extrabold">Delivery</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              We deliver nationwide. The charge is agreed with you on WhatsApp
-              once your order is submitted, and confirmed before you pay.
-            </p>
-          </div>
-        </div>
-      </Reveal>
-
-      {related.length > 0 ? (
-        <Reveal as="section" className="mt-20">
-          <div className="shell">
-            <h2 className="display text-[length:var(--text-display-m)]">
-              You may also like
-            </h2>
-          </div>
-          <div className="hairline mt-5" />
-          <ul className="rail shell mt-6 pb-2">
-            {related.map((item) => (
-              <li key={item.id}>
-                <ProductCard
-                  product={toCardData(item)}
-                  density="rail"
-                />
-              </li>
-            ))}
-          </ul>
-        </Reveal>
-      ) : null}
+      <Rail
+        eyebrow="Complete the look"
+        title="You may also like"
+        href={`/category/${product.categorySlug}`}
+        products={related.map(toCardData)}
+      />
 
       <RecentlyViewed excludeSlug={product.slug} />
     </>

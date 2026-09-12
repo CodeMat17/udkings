@@ -2,7 +2,7 @@
 
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { updateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -17,6 +17,22 @@ import {
   rateLimit,
   verifySessionToken,
 } from "@/lib/admin-auth";
+
+/**
+ * Expires the static storefront after a catalogue write.
+ *
+ * `updateTag` expires the cached Convex reads immediately (not
+ * stale-while-revalidate), so the admin sees their own edit on the next load.
+ * `revalidatePath("/", "layout")` expires every prerendered page beneath the
+ * root layout: a product edit touches its own page, its category, the home
+ * rails, "related" rails on other products and the header menu, so the whole
+ * catalogue is the relevant cache. Nothing regenerates eagerly — each page
+ * rebuilds once, on its next visit, then is static again.
+ */
+function refreshStorefront(): void {
+  updateTag(CATALOG_TAG);
+  revalidatePath("/", "layout");
+}
 
 /**
  * The admin's server-side entry points.
@@ -142,11 +158,6 @@ export async function listProducts() {
   return fetchQuery(api.admin.listAllProducts, { secret: adminSecret() });
 }
 
-export async function listOrders() {
-  await requireSession();
-  return fetchQuery(api.admin.listOrders, { secret: adminSecret() });
-}
-
 export async function setArchived(productId: string, isArchived: boolean) {
   await requireSession();
   await fetchMutation(api.admin.setArchived, {
@@ -157,7 +168,7 @@ export async function setArchived(productId: string, isArchived: boolean) {
   // The storefront reads a cached catalogue; an edit is what invalidates it.
   // `updateTag` expires immediately rather than serving stale-while-revalidate,
   // so the admin sees their own edit on the shop the moment they make it.
-  updateTag(CATALOG_TAG);
+  refreshStorefront();
 }
 
 /* ------------------------------------------------------------------ *
@@ -399,7 +410,7 @@ export async function saveProduct(
     return { ok: false, error: message(error) };
   }
 
-  updateTag(CATALOG_TAG);
+  refreshStorefront();
   return { ok: true, name: args.name, created: !productId };
 }
 
@@ -421,7 +432,7 @@ export async function deleteProduct(
   } catch (error) {
     return { ok: false, error: message(error) };
   }
-  updateTag(CATALOG_TAG);
+  refreshStorefront();
   return { ok: true };
 }
 
@@ -515,7 +526,7 @@ export async function saveCategory(
     return { ok: false, error: message(error) };
   }
 
-  updateTag(CATALOG_TAG);
+  refreshStorefront();
   return { ok: true, name, created: !currentSlug };
 }
 
@@ -535,6 +546,6 @@ export async function deleteCategory(
   } catch (error) {
     return { ok: false, error: message(error) };
   }
-  updateTag(CATALOG_TAG);
+  refreshStorefront();
   return { ok: true };
 }

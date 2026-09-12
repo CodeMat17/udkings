@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
-import { CartView } from "@/components/cart/cart-view";
-import { getCategories } from "@/lib/catalog";
+import { PageIntro } from "@/components/layout/page-intro";
+import { BagContents } from "@/components/bag/bag-contents";
 
 export const metadata: Metadata = {
-  title: "Your cart",
+  title: "Your bag",
   robots: { index: false, follow: true },
 };
 
-export default async function CartPage() {
-  const categories = await getCategories();
+/** A static shell; the bag itself lives in the browser. */
+export default function CartPage() {
   return (
-    <CartView
-      categories={categories.map((c) => ({ name: c.name, slug: c.slug }))}
-    />
+    <>
+      <PageIntro eyebrow="Ready to order" title="Your bag">
+        Send the list to us on WhatsApp — we confirm availability and the total
+        price in the chat.
+      </PageIntro>
+      <div className="shell">
+        <BagContents variant="page" />
+      </div>
+    </>
   );
 }

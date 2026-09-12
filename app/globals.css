@@ -5,107 +5,90 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ---------------------------------------------------------------------------
-   Breadfruit design system.
-   Raw indigo denim is the dark surface. Hibiscus is the spotlight.
-   Brass is reserved, always and only, for wholesale.
-   No component may use a raw hex value — everything comes from here.
+   Atelier — the UDKING'S design system.
+   Warm ivory ground, espresso ink, a serif display voice. Wine is the one
+   accent; gold is reserved, always and only, for wholesale.
+   No component may use a raw hex value except the fixed-dark hero and footer.
 --------------------------------------------------------------------------- */
 
 :root {
-  /* Surfaces */
-  --oyster: #f1f0ec;
-  --oyster-raised: #ffffff;
-  --oyster-sunken: #e4e2dc;
-
-  /* Ink */
-  --indigo-900: #10132b;
-  --indigo-800: #191d3d;
-  --indigo-700: #262b52;
-  --indigo-ink: #14162e;
-
-  /* Accent — hibiscus */
-  --hibiscus: #c2185b;
-  --hibiscus-lift: #ff5c8a;
-
-  /* Wholesale — brass. Reserved. */
-  --brass: #866711;
-  --brass-lift: #e8c36a;
-
-  /* Neutral text */
-  --muted-light: #55525c;
-  --muted-dark: #a9aec9;
-
-  /* Status */
-  --in-stock: #1b6b4a;
-  --in-stock-lift: #5bd6a0;
+  --ivory: #f6f3ee;
+  --paper: #fdfbf8;
+  --sand: #ece6dc;
+  --ink: #17130f;
+  --ink-soft: #675e55;
+  --wine: #6b1d35;
+  --wine-lift: #e9a8ba;
+  --gold: #85672c;
+  --gold-lift: #d8b879;
+  --green: #1f6f4a;
+  --green-lift: #74cf9f;
   --gone: #9a3226;
   --gone-lift: #ff8b7a;
 
-  /* Radii */
-  --r-sm: 8px;
-  --r-md: 14px;
-  --r-lg: 24px;
-  --radius: 14px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 18px;
+  --radius: 10px;
 
-  /* Semantic roles — light theme */
-  --background: var(--oyster);
-  --foreground: var(--indigo-ink);
-  --card: var(--oyster-raised);
-  --card-foreground: var(--indigo-ink);
-  --popover: var(--oyster-raised);
-  --popover-foreground: var(--indigo-ink);
-  --primary: var(--hibiscus);
+  --background: var(--ivory);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--wine);
   --primary-foreground: #ffffff;
-  --secondary: var(--oyster-sunken);
-  --secondary-foreground: var(--indigo-ink);
-  --muted: var(--oyster-sunken);
-  --muted-foreground: var(--muted-light);
-  --accent: var(--oyster-sunken);
-  --accent-foreground: var(--indigo-ink);
+  --secondary: var(--sand);
+  --secondary-foreground: var(--ink);
+  --muted: var(--sand);
+  --muted-foreground: var(--ink-soft);
+  --accent: var(--sand);
+  --accent-foreground: var(--ink);
   --destructive: var(--gone);
-  --border: #d6d3ca;
-  --input: #8c8a84;
-  --ring: var(--hibiscus);
+  --border: #e1d9cd;
+  --input: #b8ad9f;
+  --ring: var(--ink);
 
-  --accent-ink: var(--hibiscus);
-  --wholesale-ink: var(--brass);
-  --stock-ink: var(--in-stock);
+  --accent-ink: var(--wine);
+  --wholesale-ink: var(--gold);
+  --stock-ink: var(--green);
   --gone-ink: var(--gone);
-  --scrim: 16, 19, 43;
+  --whatsapp: #1e7a4c;
+  --scrim: 23, 19, 15;
 
-  --elev-1: 0 1px 2px rgb(16 19 43 / 0.06), 0 2px 8px rgb(16 19 43 / 0.06);
-  --elev-2: 0 2px 6px rgb(16 19 43 / 0.08), 0 18px 40px rgb(16 19 43 / 0.12);
+  --elev-1: 0 1px 2px rgb(23 19 15 / 0.05), 0 4px 16px rgb(23 19 15 / 0.05);
+  --elev-2: 0 2px 8px rgb(23 19 15 / 0.06), 0 24px 60px rgb(23 19 15 / 0.14);
 }
 
 .dark {
-  --background: var(--indigo-900);
-  --foreground: #f4f5fb;
-  --card: var(--indigo-800);
-  --card-foreground: #f4f5fb;
-  --popover: var(--indigo-800);
-  --popover-foreground: #f4f5fb;
-  --primary: var(--hibiscus-lift);
-  --primary-foreground: var(--indigo-900);
-  --secondary: var(--indigo-700);
-  --secondary-foreground: #f4f5fb;
-  --muted: var(--indigo-800);
-  --muted-foreground: var(--muted-dark);
-  --accent: var(--indigo-700);
-  --accent-foreground: #f4f5fb;
+  --background: #131110;
+  --foreground: #f2ede6;
+  --card: #1c1916;
+  --card-foreground: #f2ede6;
+  --popover: #1c1916;
+  --popover-foreground: #f2ede6;
+  --primary: var(--wine-lift);
+  --primary-foreground: #131110;
+  --secondary: #27221e;
+  --secondary-foreground: #f2ede6;
+  --muted: #27221e;
+  --muted-foreground: #a89d91;
+  --accent: #27221e;
+  --accent-foreground: #f2ede6;
   --destructive: var(--gone-lift);
-  --border: var(--indigo-700);
-  --input: #5763bd;
-  --ring: var(--hibiscus-lift);
+  --border: #302a25;
+  --input: #5c534a;
+  --ring: #f2ede6;
 
-  --accent-ink: var(--hibiscus-lift);
-  --wholesale-ink: var(--brass-lift);
-  --stock-ink: var(--in-stock-lift);
+  --accent-ink: var(--wine-lift);
+  --wholesale-ink: var(--gold-lift);
+  --stock-ink: var(--green-lift);
   --gone-ink: var(--gone-lift);
-  --scrim: 8, 10, 24;
+  --scrim: 8, 7, 6;
 
-  /* No shadows on dark surfaces — elevation is surface lightness. */
   --elev-1: none;
-  --elev-2: none;
+  --elev-2: 0 24px 60px rgb(0 0 0 / 0.5);
 }
 
 @theme inline {
@@ -132,21 +115,23 @@
   --color-wholesale: var(--wholesale-ink);
   --color-stock: var(--stock-ink);
   --color-gone: var(--gone-ink);
+  --color-whatsapp: var(--whatsapp);
 
-  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-serif), "Times New Roman", serif;
 
   --radius-sm: var(--r-sm);
   --radius-md: var(--r-md);
   --radius-lg: var(--r-lg);
-  --radius-xl: 32px;
+  --radius-xl: 16px;
 
   --shadow-elev1: var(--elev-1);
   --shadow-elev2: var(--elev-2);
 
-  --text-display-xl: clamp(2.75rem, 9vw, 5.5rem);
-  --text-display-l: clamp(2rem, 6vw, 3.5rem);
-  --text-display-m: clamp(1.5rem, 4.5vw, 2.25rem);
+  --text-display-xl: clamp(3rem, 8.5vw, 6.75rem);
+  --text-display-l: clamp(2.5rem, 6vw, 4.25rem);
+  --text-display-m: clamp(1.875rem, 4vw, 2.875rem);
 }
 
 @layer base {
@@ -162,22 +147,26 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
     font-size: 1rem;
     line-height: 1.6;
+    letter-spacing: -0.005em;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Visible focus, against both themes and against product photography. */
   :focus-visible {
-    outline: 2px solid var(--accent-ink);
-    outline-offset: 2px;
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
     border-radius: 4px;
   }
 
   ::selection {
-    background: var(--accent-ink);
+    background: var(--foreground);
     color: var(--background);
+  }
+
+  details > summary::-webkit-details-marker {
+    display: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -195,24 +184,30 @@
 }
 
 @layer components {
-  /* The utility voice: flat, wide, uppercase. Never a display face. */
+  /* The utility voice: small, wide, uppercase. */
   .label {
-    font-size: 0.8125rem;
-    font-weight: 800;
+    font-size: 0.6875rem;
+    font-weight: 600;
     line-height: 1.2;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
   }
 
+  /* The display voice: a high-contrast serif, set tight. */
   .display {
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    line-height: 0.98;
+    font-family: var(--font-display-serif), "Times New Roman", serif;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
+  }
+  .display em {
+    font-style: italic;
+    font-weight: 400;
   }
 
   .shell {
     width: 100%;
-    max-width: 1280px;
+    max-width: 1360px;
     margin-inline: auto;
     padding-inline: 16px;
   }
@@ -227,7 +222,7 @@
     }
   }
 
-  /* Horizontal rails — native CSS scroll-snap, no JS carousel. */
+  /* Horizontal rails — native scroll-snap, no JS carousel. */
   .rail {
     display: flex;
     gap: 12px;
@@ -245,14 +240,12 @@
     flex: 0 0 auto;
   }
 
-  /* Text over hero imagery needs a real scrim, not a guess. */
   .scrim {
     background: linear-gradient(
       to top,
-      rgb(var(--scrim) / 0.92) 0%,
-      rgb(var(--scrim) / 0.75) 32%,
-      rgb(var(--scrim) / 0.35) 62%,
-      rgb(var(--scrim) / 0.1) 100%
+      rgb(var(--scrim) / 0.85) 0%,
+      rgb(var(--scrim) / 0.45) 38%,
+      rgb(var(--scrim) / 0.05) 72%
     );
   }
 
@@ -261,105 +254,145 @@
     background: var(--border);
   }
 
-  /* ---------------------------------------------------------------------
-     The hero surface. No photograph behind the headline — the ground is
-     painted: raw indigo, a hibiscus glow bottom-left, brass top-right, and
-     a woven grid at 5% so the flat fill reads as fabric, not a swatch.
-  --------------------------------------------------------------------- */
-  .hero-ground {
-    background:
-      radial-gradient(
-        120% 90% at 10% 100%,
-        rgb(194 24 91 / 0.45) 0%,
-        transparent 62%
-      ),
-      radial-gradient(
-        90% 70% at 92% 2%,
-        rgb(232 195 106 / 0.18) 0%,
-        transparent 58%
-      ),
-      radial-gradient(
-        85% 65% at 50% -12%,
-        var(--indigo-700) 0%,
-        transparent 70%
-      ),
-      linear-gradient(165deg, var(--indigo-800) 0%, var(--indigo-900) 62%);
+  /* Buttons: pill-shaped, quiet, decisive. Utilities may override any part. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    height: 3rem;
+    padding-inline: 1.75rem;
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    transition:
+      background-color 0.25s ease,
+      color 0.25s ease,
+      border-color 0.25s ease,
+      opacity 0.25s ease,
+      transform 0.25s ease;
+  }
+  .btn:active {
+    transform: scale(0.985);
+  }
+  .btn-primary {
+    background: var(--foreground);
+    color: var(--background);
+  }
+  .btn-primary:hover {
+    opacity: 0.88;
+  }
+  .btn-outline {
+    border: 1px solid var(--foreground);
+    color: var(--foreground);
+  }
+  .btn-outline:hover {
+    background: var(--foreground);
+    color: var(--background);
+  }
+  .btn-whatsapp {
+    background: var(--whatsapp);
+    color: #ffffff;
+  }
+  .btn-whatsapp:hover {
+    opacity: 0.9;
   }
 
-  /* The weave. Warp and weft, masked so it fades out at the edges. */
-  .hero-weave {
-    background-image:
-      linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
-    background-size: 72px 72px;
-    -webkit-mask-image: radial-gradient(
-      85% 70% at 28% 42%,
-      #000 0%,
-      transparent 78%
-    );
-    mask-image: radial-gradient(85% 70% at 28% 42%, #000 0%, transparent 78%);
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    height: 2.5rem;
+    padding-inline: 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .chip:hover {
+    border-color: var(--foreground);
+  }
+  .chip[aria-pressed="true"],
+  .chip[aria-current="page"] {
+    background: var(--foreground);
+    border-color: var(--foreground);
+    color: var(--background);
   }
 
-  /* A slow-breathing hibiscus bloom behind the headline. */
-  .hero-bloom {
-    background: radial-gradient(
-      closest-side,
-      rgb(255 92 138 / 0.28),
-      transparent 100%
-    );
-    filter: blur(10px);
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0 1px;
+    padding-bottom: 2px;
+    transition: background-size 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size: 100% 1px;
   }
 }
 
 @layer components {
-  /* Scroll reveals — 12px rise + fade, once. See components/motion/reveal.tsx. */
-  [data-reveal] {
-    transition:
-      opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  [data-reveal="out"] {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  [data-reveal="in"] {
-    opacity: 1;
-    transform: none;
-  }
-
-  /* The cart badge springs when the count changes. */
-  @keyframes badge-pop {
-    from {
-      transform: scale(0.6);
-    }
-    to {
-      transform: scale(1);
-    }
-  }
-  .badge-pop {
-    animation: badge-pop 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  @keyframes slide-up {
+  @keyframes fade-up {
     from {
       opacity: 0;
-      transform: translateY(24px);
+      transform: translateY(14px);
     }
     to {
       opacity: 1;
       transform: none;
     }
   }
-  .slide-up {
-    animation: slide-up 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  .fade-up {
+    animation: fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  /* States change under reduced motion — they just don't travel. */
-  @media (prefers-reduced-motion: reduce) {
-    [data-reveal="out"] {
+  /* Scroll reveals in CSS alone — no observer, no hydration, no JS. Browsers
+     without scroll-driven animations simply show the content. */
+  @keyframes reveal-in {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    to {
       opacity: 1;
       transform: none;
     }
   }
-}
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .reveal {
+        animation: reveal-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 40%;
+      }
+    }
+  }
 
+  /* Slide-over bag and the photo zoom, driven by Base UI's data attributes. */
+  .sheet-panel {
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sheet-panel[data-starting-style],
+  .sheet-panel[data-ending-style] {
+    transform: translateX(100%);
+  }
+  .sheet-backdrop,
+  .fade-dialog {
+    transition: opacity 0.35s ease;
+  }
+  .sheet-backdrop[data-starting-style],
+  .sheet-backdrop[data-ending-style],
+  .fade-dialog[data-starting-style],
+  .fade-dialog[data-ending-style] {
+    opacity: 0;
+  }
+}

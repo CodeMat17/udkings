@@ -2,47 +2,43 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  HomeIcon,
-  LayoutGridIcon,
-  MessageCircleIcon,
-  ShirtIcon,
-  ShoppingBagIcon,
-} from "lucide-react";
-import { useCart } from "@/lib/cart-store";
+import { HeartIcon, HomeIcon, LayoutGridIcon, ShoppingBagIcon } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp";
+import { openBag, useBag } from "@/lib/bag";
 import { BUSINESS, waLink } from "@/lib/business";
 import { cn } from "@/lib/utils";
 
-const ITEMS = [
+const LINKS = [
   { href: "/", label: "Home", Icon: HomeIcon },
-  { href: "/shop", label: "Shop", Icon: ShirtIcon },
-  { href: "/categories", label: "Categories", Icon: LayoutGridIcon },
+  { href: "/shop", label: "Shop", Icon: LayoutGridIcon },
+  { href: "/wishlist", label: "Saved", Icon: HeartIcon },
 ] as const;
+
+const ITEM =
+  "flex min-h-14 w-full flex-col items-center justify-center gap-1 py-2 text-[0.625rem] font-medium tracking-wide";
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { count, ready } = useCart();
+  const { count, ready } = useBag();
+  const show = ready && count > 0;
 
   return (
     <nav
       aria-label="Quick actions"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur-md lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur-lg lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="mx-auto flex max-w-lg items-stretch">
-        {ITEMS.map(({ href, label, Icon }) => {
+        {LINKS.map(({ href, label, Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
             <li key={href} className="flex-1">
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[0.6875rem] font-bold tracking-wide",
-                  active ? "text-accent-ink" : "text-muted-foreground",
-                )}
+                className={cn(ITEM, active ? "text-foreground" : "text-muted-foreground")}
               >
-                <Icon className="size-5" aria-hidden="true" />
+                <Icon className="size-5" strokeWidth={active ? 2 : 1.5} aria-hidden="true" />
                 {label}
               </Link>
             </li>
@@ -50,54 +46,37 @@ export function BottomNav() {
         })}
 
         <li className="flex-1">
-          <Link
-            href="/cart"
-            aria-current={pathname === "/cart" ? "page" : undefined}
-            aria-label={
-              ready
-                ? `Cart, ${count} ${count === 1 ? "item" : "items"}`
-                : "Cart"
-            }
-            className={cn(
-              "relative flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[0.6875rem] font-bold tracking-wide",
-              pathname === "/cart" ? "text-accent-ink" : "text-muted-foreground",
-            )}
+          <button
+            type="button"
+            onClick={openBag}
+            aria-label={show ? `Open bag, ${count} ${count === 1 ? "item" : "items"}` : "Open bag"}
+            className={cn(ITEM, "text-muted-foreground")}
           >
             <span className="relative">
-              <ShoppingBagIcon className="size-5" aria-hidden="true" />
-              {/* Reserves width for two digits so the badge never shifts layout. */}
+              <ShoppingBagIcon className="size-5" strokeWidth={1.5} aria-hidden="true" />
               <span
                 aria-hidden="true"
-                className="absolute -top-2 -right-3 grid h-4 min-w-[1.375rem] place-items-center rounded-full px-1 text-[0.625rem] leading-none font-extrabold"
-                style={{
-                  background: ready && count > 0 ? "var(--accent-ink)" : "transparent",
-                  color: ready && count > 0 ? "var(--background)" : "transparent",
-                }}
-              >
-                {ready && count > 0 ? (
-                  <span key={count} className="badge-pop">
-                    {count > 99 ? "99+" : count}
-                  </span>
-                ) : (
-                  "0"
+                className={cn(
+                  "absolute -top-1.5 -right-2.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[0.5625rem] leading-none font-bold text-primary-foreground transition-transform duration-300",
+                  show ? "scale-100" : "scale-0",
                 )}
+              >
+                {show ? (count > 99 ? "99+" : count) : ""}
               </span>
             </span>
-            Cart
-          </Link>
+            Bag
+          </button>
         </li>
 
         <li className="flex-1">
           <a
-            href={waLink(
-              `Hello ${BUSINESS.name}, I have a question about an item on your website.`,
-            )}
+            href={waLink(`Hello ${BUSINESS.name}, I have a question about an item on your website.`)}
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
             aria-label="Chat on WhatsApp, opens in a new tab"
-            className="flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[0.6875rem] font-bold tracking-wide text-stock"
+            className={cn(ITEM, "text-whatsapp dark:text-stock")}
           >
-            <MessageCircleIcon className="size-5" aria-hidden="true" />
+            <WhatsAppIcon className="size-5" aria-hidden="true" />
             WhatsApp
           </a>
         </li>

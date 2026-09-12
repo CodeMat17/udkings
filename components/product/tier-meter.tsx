@@ -1,91 +1,53 @@
 "use client";
 
-import { m, useReducedMotion } from "framer-motion";
 import { tierProgress, unitPriceFor } from "@/lib/pricing";
 import { formatNaira } from "@/lib/format";
-import { spring } from "@/lib/motion";
 import type { Product } from "@/lib/types";
 
-/**
- * The one place this design is allowed to show off, because it encodes the
- * thing that makes this business different: the wholesale ladder, stated in
- * words, filling toward the next rung as the stepper increments.
- */
+/** The wholesale ladder, filling toward the next rung as the quantity rises. */
 export function TierMeter({ product, quantity }: { product: Product; quantity: number }) {
-  const reduced = useReducedMotion();
   const tiers = [...product.priceTiers].sort((a, b) => a.minQty - b.minQty);
-  const last = tiers[tiers.length - 1];
-  const result = unitPriceFor(product, quantity);
-  const progress = tierProgress(product, quantity);
-  const unlocked = result.tier === "wholesale";
+  if (tiers.length < 2) return null;
 
-  if (!last || tiers.length < 2) return null;
+  const result = unitPriceFor(product, quantity);
+  const unlocked = result.tier === "wholesale";
+  const colour = unlocked ? "var(--wholesale-ink)" : "var(--foreground)";
 
   return (
-    <section aria-label="Wholesale price ladder" className="mt-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <p className="text-2xl font-extrabold tabular-nums">
-          {formatNaira(result.unitPrice)}
-          <span className="ml-1.5 text-sm font-semibold text-muted-foreground">
-            each
-          </span>
-        </p>
-        <p className="text-sm font-bold tabular-nums text-muted-foreground">
-          {formatNaira(last.unitPrice)} at {last.minQty} pcs
-        </p>
-      </div>
+    <section aria-label="Wholesale price ladder" className="mt-6 rounded-lg border border-border bg-card p-4 sm:p-5">
+      <p className="label text-muted-foreground">Buy more, pay less</p>
 
-      <div className="relative mt-3 h-2 rounded-full bg-secondary">
-        <m.div
-          className="absolute inset-y-0 left-0 rounded-full"
-          style={{
-            background: unlocked
-              ? "var(--wholesale-ink)"
-              : "var(--accent-ink)",
-          }}
-          initial={false}
-          animate={{ width: `${Math.round(progress * 100)}%` }}
-          transition={reduced ? { duration: 0 } : spring}
+      <div className="relative mt-4 h-1 rounded-full bg-secondary">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full transition-[width,background-color] duration-500 ease-out"
+          style={{ width: `${Math.round(tierProgress(product, quantity) * 100)}%`, background: colour }}
         />
-        {tiers.map((tier) => {
-          const at =
-            last.minQty > 1 ? ((tier.minQty - 1) / (last.minQty - 1)) * 100 : 0;
-          const reached = quantity >= tier.minQty;
-          return (
-            <span
-              key={tier.minQty}
-              aria-hidden="true"
-              className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background"
-              style={{
-                left: `${at}%`,
-                background: reached
-                  ? tier.minQty >= (product.wholesaleMinQty ?? Infinity)
-                    ? "var(--wholesale-ink)"
-                    : "var(--accent-ink)"
-                  : "var(--border)",
-              }}
-            />
-          );
-        })}
       </div>
 
-      <ul className="mt-2 flex flex-wrap justify-between gap-x-2 text-xs font-bold text-muted-foreground tabular-nums">
-        {tiers.map((tier) => (
-          <li key={tier.minQty}>{tier.minQty} pcs</li>
+      <ul
+        className="mt-3 grid gap-2 text-xs tabular-nums"
+        style={{ gridTemplateColumns: `repeat(${tiers.length}, minmax(0, 1fr))` }}
+      >
+        {tiers.map((tier, index) => (
+          <li
+            key={tier.minQty}
+            className={
+              (index === 0 ? "text-left " : index === tiers.length - 1 ? "text-right " : "text-center ") +
+              (quantity >= tier.minQty ? "font-semibold text-foreground" : "text-muted-foreground")
+            }
+          >
+            <span className="block">{tier.minQty}+ pcs</span>
+            <span className="block">{formatNaira(tier.unitPrice)}</span>
+          </li>
         ))}
       </ul>
 
-      {/* Colour is never the only signal — the threshold is always in words. */}
-      <p
-        aria-live="polite"
-        className="mt-3 text-sm font-semibold"
-        style={{ color: unlocked ? "var(--wholesale-ink)" : "var(--muted-foreground)" }}
-      >
+      <p aria-live="polite" className="mt-4 text-sm" style={{ color: unlocked ? "var(--wholesale-ink)" : undefined }}>
         {result.nextTier
-          ? `Add ${result.nextTier.qtyAway} more to unlock ${formatNaira(result.nextTier.unitPrice)} each — you save ${formatNaira(result.nextTier.saving)}.`
+          ? `Add ${result.nextTier.qtyAway} more for ${formatNaira(result.nextTier.unitPrice)} each — you save ${formatNaira(result.nextTier.saving)}.`
           : unlocked
-            ? `You are on the wholesale price at ${quantity} pieces. This is the best rate we do.`
-            : `You are buying ${quantity} ${quantity === 1 ? "piece" : "pieces"} at the retail price.`}
+            ? `You're on our best wholesale price at ${quantity} pieces.`
+            : `${quantity} ${quantity === 1 ? "piece" : "pieces"} at the retail price.`}
       </p>
     </section>
   );

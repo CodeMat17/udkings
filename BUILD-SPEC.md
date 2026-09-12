@@ -281,7 +281,6 @@ Rules:
 ```text
 /                              Home
 /shop                          All products (filters as search params)
-/shop/new                      New arrivals
 /shop/best-sellers             Best sellers
 /shop/deals                    Discounted
 /wholesale                     Wholesale hub + catalogue request
